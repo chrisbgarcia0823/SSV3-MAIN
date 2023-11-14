@@ -1,0 +1,40 @@
+﻿@model ShopSuppliesV3.Models.SSv3_GAL_INCOMMINGTBL
+@using ShopSuppliesV3.Helpers
+
+@{
+    ViewData["Title"] = "Edit Incoming";
+
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+@section Styles
+    {
+
+}
+
+<form asp-action="Edit" method="post">
+    <div class="card card-outline card-danger">
+        <div class="card-header">
+            <h3>Edit Incoming Item #@Model.Id</h3>
+        </div>
+        <div class="card-body">
+        </div>
+        <div class="card-footer">
+            <div class="row">
+                <div class="col">
+
+                </div>
+                <div class="col text-right">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

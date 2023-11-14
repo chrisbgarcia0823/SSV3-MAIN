@@ -1,0 +1,50 @@
+﻿@model IEnumerable<ShopSuppliesV3.ViewModel.Store>
+@using ShopSuppliesV3.Helpers
+@{
+    ViewData["Title"] = "Inventory";
+    Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+}
+
+@section Styles
+{
+
+}
+
+<div class="card card-outline card-danger">
+    <div class="card-header">
+        <h3>Inventory List</h3>
+    </div>
+    <div class="card-body table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr class="text-uppercase">
+                    <td>Id</td>
+                    <td>BU</td>
+                    <td>Item Number</td>
+                    <td>Description</td>
+                    <td>Stocks Issued</td>
+                    <td>In Request Stocks</td>
+                    <td>Remaining Stocks To Request</td>
+                    <td>On Hand Stocks</td>
+                    <td>Safety Stocks</td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var item in Model)
+                {
+                    <tr class="@StoreIndicatorHelpers.ColorRowBasedOnStocks(item.RemainingStocksToRequest, item.SafetyStock)">
+                        <td>@item.Id</td>
+                        <td>@item.ItemBU</td>
+                        <td>@item.ItemNumber</td>
+                        <td>@item.Description</td>
+                        <td>@item.OutgoingStocks</td>
+                        <td>@item.InRequestStocks</td>
+                        <td>@item.RemainingStocksToRequest</td>
+                        <td>@item.RemainingStocksOnHand</td>
+                        <td>@item.SafetyStock</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

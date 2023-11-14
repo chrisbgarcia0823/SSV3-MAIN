@@ -1,0 +1,32 @@
+﻿@model ShopSuppliesV3.Models.SSv3_GAL_BUTBL
+
+@{
+    ViewData["Title"] = "Create BU";
+    Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+}
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input asp-for="isActive" value="1" type="hidden" />
+    <div class="card card-outline card-danger mx-auto" style="width:30rem">
+        <div class="card-header">
+            <h3>CREATE BU</h3>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label asp-for="BUname" class="control-label"></label>
+                <input asp-for="BUname" class="form-control" />
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="row">
+                <div class="col">
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </div>
+                <div class="col text-right">
+                    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+

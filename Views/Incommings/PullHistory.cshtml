@@ -1,0 +1,112 @@
+﻿@model IEnumerable<ShopSuppliesV3.ViewModel.PullHistory>
+@using ShopSuppliesV3.Helpers
+
+@{
+    ViewData["Title"] = "Incoming History";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "admin")
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+
+}
+
+@section Styles
+{
+    @*FOR DATATABLE*@
+    <link rel="stylesheet" href="~/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+}
+
+<div class="card card-outline card-danger">
+    <div class="card-header">
+        @*<h1>My Cart</h1>*@
+        <h1>Pullout / Pullin History</h1>
+    </div>
+    <div class="card-body">
+        <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="table-responsive">
+                        <table id="history" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                            <thead>
+                                <tr>
+
+                                    <td>#</td>
+                                    <td>BU</td>
+                                    @*<td>Order Number</td>*@
+                                    <td>Status</td>
+                                    <td>Item Number</td>
+                                    <td>Action</td>
+                                    <td>Pull Quantity</td>
+                                    <td>Unit of Measure</td>
+                                    <td>Unit Price</td>
+                                    <td>Total Price</td>
+                                    <td>Reason</td>
+                                    <td>Trasacted By</td>
+                                    <td>Transaction Date</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var history in Model)
+                                {
+
+                                    <tr>
+                                        <td>@history.Id</td>
+                                        <td>@history.BUname</td>
+                                        @*<td>@history.OrderNumber</td>*@
+                                        <td class="@IncomingHelpers.PullRequestHelper(history.Status)">@history.Status</td>
+                                        <td>@history.ItemNumber</td>
+                                        <td>@history.Action</td>
+                                        <td>@history.PullQuantity</td>
+                                        <td>@history.UnitOfMeasure</td>
+                                        <td>@history.UnitPrice</td>
+                                        <td>@history.TotalPrice</td>
+                                        <td>@history.Reason</td>
+                                        <td>@history.TransactedBy</td>
+                                        <td>@history.TransactionDate.ToString("g")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+    {
+    @*FOR DATATABLE*@
+    <script src="~/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+    <script src="~/plugins/jszip/jszip.min.js"></script>
+    <script src="~/plugins/pdfmake/pdfmake.min.js"></script>
+    <script src="~/plugins/pdfmake/vfs_fonts.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+
+    <script>
+        $(function () {
+            $("#history").DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "paging": false,
+                "info": true,
+                "paging": true,
+                "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+            }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+        });
+    </script>
+}

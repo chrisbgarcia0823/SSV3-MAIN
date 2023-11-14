@@ -1,0 +1,85 @@
+﻿@*@model IEnumerable<ShopSuppliesV3.ViewModel.Requests>*@
+@model IEnumerable<ShopSuppliesV3.ViewModel.Carts>
+@using ShopSuppliesV3.Helpers;
+@{
+    ViewData["Title"] = "Request List";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+@section Styles
+{
+    @*FOR ALERTS*@
+    <link href="~/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" />
+    <link href="~/plugins/toastr/toastr.min.css" rel="stylesheet" />
+}
+
+
+<div class="row">
+    <div class="col-lg-6 offset-lg-3">
+        <div class="card card-outline card-danger" style="height:45rem">
+            <div class="card-header">
+                <h3>Request List</h3>
+            </div>
+            <div class="card-body table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr class="text-uppercase">
+                            <td>Cart Id</td>
+                            <td>BU</td>
+                            <td>Requestor Name</td>
+                            <td>Approver Name</td>
+                            <td>Cart</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.RequestorId</td>
+                                <td>@item.BUname</td>
+                                <td>@item.RequestorName</td>
+                                <td>@item.ApproverName</td>
+                                <td class="navbar navbar-expand">
+                                    <div class="dropdown">
+                                        <a asp-action="IssuanceRequestDetails" asp-route-cartId="@item.RequestorId" class="nav-link">
+                                            <h4><i class="fas fa-shopping-cart"></i></h4>
+                                            <span class="badge badge-danger navbar-badge">@item.RequestCount</span>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    @*FOR ALERTS*@
+    <script src="~/plugins/sweetalert2/sweetalert2.min.js"></script>
+    <script src="~/plugins/toastr/toastr.min.js"></script>
+    @if (TempData["ItemIssuedSuccess"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.success("Item for request-@TempData["ItemIssuedSuccess"] issued successfully ")
+            });
+        </script>
+    }
+}

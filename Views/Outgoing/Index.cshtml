@@ -1,0 +1,201 @@
+﻿@model IEnumerable<ShopSuppliesV3.ViewModel.Outgoing>
+@using ShopSuppliesV3.Helpers
+@using ShopSuppliesV3.ViewModel
+
+@{
+    ViewData["TItle"] = "Cardex";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+@section Styles
+{
+    @*FOR DATATABLE*@
+    <link rel="stylesheet" href="~/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+
+}
+
+<div class="card card-outline card-danger">
+    <div class="card-header">
+        <h3>Issued Items Kardex</h3>
+    </div>
+    <div class="card-body">
+        <div id="example1_wrapper1" class="dataTables_wrapper dt-bootstrap4">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="table-responsive">
+                        <table id="IssuedItemTable" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                            <thead>
+                                <tr>
+                                    <td>Order #</td>
+                                    <td>Category</td>
+                                    <td>Requestor</td>
+                                    <td>Area</td>
+                                    <td>Request Date</td>
+                                    <td>Approver</td>
+                                    <td>Item #</td>
+                                    <td>Description</td>
+                                    <td>Request Qty</td>
+                                    <td>UOM</td>
+                                    <td>Status</td>
+                                    <td>Issued Qty</td>
+                                    <td>Issuer</td>
+                                    <td>Issued Date</td>
+                                    <td>Remarks</td>
+                                    <td>PO #</td>
+                                    <td>Unit Cost</td>
+                                    <td>Total Cost</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach(var outgoing in Model)
+                                {
+                                    <tr>
+                                        <td>@outgoing.OrderNumber</td>
+                                        <td>@outgoing.RequestCategory</td>
+                                        <td>@outgoing.RequestedByName</td>
+                                        <td>@outgoing.AreaName</td>
+                                        <td>@outgoing.DateRequested</td>
+                                        <td>@outgoing.ApproverName</td>
+                                        <td>@outgoing.ItemNumber</td>
+                                        <td>@outgoing.Description</td>
+                                        <td>@outgoing.QuantityRequested</td>
+                                        <td>@outgoing.UnitOfMeasure</td>
+                                        <td>@outgoing.RequestStatus</td>
+                                        <td>@outgoing.QuantityIssued</td>
+                                        <td>@outgoing.IssuedByName</td>
+                                        <td>@outgoing.DateIssued</td>
+                                        <td>@outgoing.OutgoingRemarks</td>
+                                        <td>@outgoing.IncomingPOnumber</td>
+                                        <td>@outgoing.UnitCost</td>
+                                        <td>@outgoing.TotalCost</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card card-outline card-danger">
+    <div class="card-header">
+        <h3>Pullout Item Kardex</h3>
+    </div>
+    <div class="card-body">
+        <div id="example1_wrapper2" class="dataTables_wrapper dt-bootstrap4">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="table-responsive">
+                        <table id="PulloutItemTable" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                            <thead>
+                                <tr>
+                                    <td>Order #</td>
+                                    <td>Category</td>
+                                    <td>Requestor</td>
+                                    <td>Area</td>
+                                    <td>Request Date</td>
+                                    <td>Approver</td>
+                                    <td>Item #</td>
+                                    <td>Description</td>
+                                    <td>Request Qty</td>
+                                    <td>UOM</td>
+                                    <td>Status</td>
+                                    <td>Issued Qty</td>
+                                    @*<td>Issuer</td>*@
+                                    @*<td>Issued Date</td>*@
+                                    <td>Remarks</td>
+                                    <td>PO #</td>
+                                    <td>Unit Cost</td>
+                                    <td>Total Cost</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var pullout in ViewData["PullOutList"] as List<Outgoing>)
+                                {
+                                    <tr>
+                                        <td>@pullout.OrderNumber</td>
+                                        <td>@pullout.RequestCategory</td>
+                                        <td>@pullout.RequestedByName</td>
+                                        <td>@pullout.AreaName</td>
+                                        <td>@pullout.DateRequested</td>
+                                        <td>@pullout.ApproverName</td>
+                                        <td>@pullout.ItemNumber</td>
+                                        <td>@pullout.Description</td>
+                                        <td>@pullout.QuantityRequested</td>
+                                        <td>@pullout.UnitOfMeasure</td>
+                                        <td>@pullout.RequestStatus</td>
+                                        <td>@pullout.QuantityIssued</td>
+                                        @*<td>@pullout.IssuedByName</td>*@
+                                        @*<td>@pullout.DateIssued</td>*@
+                                        <td>@pullout.OutgoingRemarks</td>
+                                        <td>@pullout.IncomingPOnumber</td>
+                                        <td>@pullout.UnitCost</td>
+                                        <td>@pullout.TotalCost</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+
+    @*FOR DATATABLE*@
+    <script src="~/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+    <script src="~/plugins/jszip/jszip.min.js"></script>
+    <script src="~/plugins/pdfmake/pdfmake.min.js"></script>
+    <script src="~/plugins/pdfmake/vfs_fonts.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+
+    <script>
+        $(function () {
+            $("#IssuedItemTable").DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "paging": false,
+                "info": true,
+                "paging": true,
+                "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+            }).buttons().container().appendTo('#example1_wrapper1 .col-md-6:eq(0)');
+        });
+    </script>
+
+    <script>
+        $(function () {
+            $("#PulloutItemTable").DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "paging": false,
+                "info": true,
+                "paging": true,
+                "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+            }).buttons().container().appendTo('#example1_wrapper2 .col-md-6:eq(0)');
+        });
+    </script>
+}

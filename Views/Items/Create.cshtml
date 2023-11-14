@@ -1,0 +1,110 @@
+﻿@using ShopSuppliesV3.Helpers
+
+@{
+    ViewData["Title"] = "Create Item";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+<div class="card card-outline card-danger mx-auto" style="width: 30rem" id="CreateItemCard">
+    <div class="card-header">
+        <h3>Create Item</h3>
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" method="post" id="CreateItemForm">
+            <div class="form-group row">
+                <label for="BUName">BU</label> <span class="text-danger">*</span>
+                <select id="BUName" name="BUName" class="form-control" required>
+                    <option value="" selected disabled>Select BU</option>
+                    @foreach (var bu in ViewData["BU"] as List<string>)
+                    {
+                        <option value="@bu">@bu</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group row">
+                <label for="BuyerName">Select Buyer</label> <span class="text-danger">*</span>
+                <select id="BuyerName" name="BuyerName" class="form-control" required>
+                    <option value="" selected disabled>Select Buyer</option>
+                    @foreach (var buyer in ViewData["BuyerName"] as List<string>)
+                    {
+                        <option value="@buyer">@buyer</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group row">
+                <div class="col">
+                    <label for="ItemNumber">Item Number</label> <span class="text-danger">*</span>
+                    <input type="text" class="form-control" id="ItemNumber" name="ItemNumber" required />
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col">
+                    <label for="SupplierId">Supplier</label> <span class="text-danger">*</span>
+                    <select class="form-control" id="SupplierId" name="SupplierId" required>
+                    <option value="" disabled selected>Select Supplier</option>
+                    @foreach (var supplier in ViewData["Suppliers"] as List<ShopSuppliesV3.Models.SSv3_GAL_SUPPLIERTBL>)
+                    {
+                        <option value="@supplier.Id">@supplier.SupplierName</option>
+                    }
+                    </select>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col">
+                    <label for="Description">Description</label> <span class="text-danger">*</span>
+                    <input type="text" class="form-control" id="Description" name="Description" required />
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col">
+                    <label for="Description">Safety Stock</label> <span class="text-danger">*</span>
+                    <input type="number" class="form-control" min="0" step="0.1" id="SafetyStock" name="SafetyStock" required />
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col">
+                    <label for="UnitOfMeasure">Unit of Measure</label> <span class="text-danger">*</span>
+                    <select class="form-control" id="UnitOfMeasure" name="UnitOfMeasure" required>
+                        <option value="" disabled selected>Select UM</option>
+                        @foreach (var um in ViewData["UnitOfMeasure"] as List<string>)
+                        {
+                            <option value="@um">@um</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col">
+                    <button class="btn btn-primary" type="submit">Save</button> 
+                </div>
+                <div class="col text-right">
+                    <a asp-action="Index" class="btn btn-secondary" >Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts
+{
+    @*ADD A SPINNING LOADING EFFECT WHEN CREATE FORM IS SUBMITTED*@
+    <script>
+        const formCreate = document.getElementById('CreateItemForm');
+        formCreate.addEventListener("submit", function (event) {
+            //Start the loading annimation
+            const div = document.createElement('div');
+            const CreateItemCard = document.getElementById('CreateItemCard');//Parent Div
+            div.classList.add('overlay');
+            div.id = 'myDiv';
+            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+            CreateItemCard.appendChild(div);
+        });
+    </script>
+}

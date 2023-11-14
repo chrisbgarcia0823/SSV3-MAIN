@@ -1,0 +1,258 @@
+﻿@model ShopSuppliesV3.Models.SSv3_GAL_INCOMMINGTBL
+@using ShopSuppliesV3.Models
+@using ShopSuppliesV3.Helpers
+
+@{
+    ViewData["Title"] = "Add Incomming Item";
+
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+@section Styles
+{
+    @*SELECT 2*@
+    <link rel="stylesheet" href="~/plugins/select2/css/select2.min.css">
+}
+
+<form asp-action="Create" method="post" id="CreateIncomingForm">
+    <div class="card card-outline card-danger mx-auto" style="width:30rem" id="CreateIncomingCard">
+        <div class="card-header">
+            <h3>Add Item to Inventory</h3>
+        </div>
+        <div class="card-body">
+            <div class="form-group row">
+                <label for="BUName">Select BU</label> <span class="text-danger">*</span>
+                <select name="BUName" id="BUName" class="form-control" onchange="selectBU(this.value)">
+                    <option value="" disabled selected>Select BU</option>
+                    @foreach (string bu in ViewData["BU"] as List<string>)
+                    {
+                        <option value="@bu">@bu</option>
+                    }
+                </select>
+            </div>
+@*            <div class="form-group row">
+                <label for="ItemId">Item Number</label> <span class="text-danger">*</span>
+                <select class="form-control" id="ItemId" name="ItemId" required onchange="selectItem(this.value)">
+                    <option value="" selected>Select Item Number</option>
+                </select>
+                <small class="text-muted text-uppercase" id="itemDescription" name="itemDescription">Description</small>
+            </div>*@
+
+            @*TEST CODE*@
+            <div class="form-group row">
+                <label>Item Number</label> <span class="text-danger">*</span>
+                <select class="form-control select2" id="ItemId" name="ItemId" required onchange="selectItem(this.value)">
+                    <option value="" selected disabled>Select Item Number</option>
+                </select>
+                <small class="text-muted text-uppercase" id="itemDescription" name="itemDescription">Description</small>
+            </div>
+            @*END TEST CODE*@
+
+            <div class="form-group row">
+                <label for="PONumber">PO Number</label> <span class="text-danger">*</span>
+                <input type="text" class="form-control" id="PONumber" name="PONumber" required />
+            </div>
+            <div class="form-group row">
+                <label for="Quantity">Quantity</label> <span class="text-danger">*</span>
+                <input type="number" min="1" step="0.0001" class="form-control" id="IncommingQuantity" name="IncommingQuantity" required />
+                <small class="text-muted text-uppercase" id="UOM" name="UOM">Unit of Measure</small>
+            </div>
+            <div class="form-group row">
+                <label for="UnitPrice">Unit Price</label> <span class="text-danger">*</span>
+                <input type="number" min="1" step="0.0001" class="form-control" id="UnitPrice" name="UnitPrice" asp-for="UnitPrice" required />
+            </div>
+            <div class="form-group row">
+                <label for="ExpirationDate">Expiration Date</label><span class="text-muted"> (Optional)</span>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">
+                            <input type="checkbox" id="expBtn">
+                        </span>
+                    </div>
+                    <input id="ExpirationDate" name="ExpirationDate" type="date" min="@DateTime.Now.ToString("yyyy-MM-dd")" class="form-control" placeholder="Check if item has expiration" disabled>
+                </div>
+                <span class="text-muted"><small>Tick the checkbox if item has expiration date</small></span>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="row">
+                <div class="col">
+                    <button type="submit" class="btn btn-primary">Add To Incomming </button>
+                </div>
+                <div class="col text-right">
+                    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+@section Scripts
+{
+    @*SELECT2*@
+    <script src="~/plugins/select2/js/select2.full.min.js"></script>
+    <script>
+        //Initialize Select2 Elements
+        $('.select2').select2();
+    </script>
+
+
+    @*FOR EXPIRATION DATE*@
+    <script>
+        document.getElementById('expBtn').onclick = function () {
+            var disabled = document.getElementById("ExpirationDate").disabled;
+            if (disabled) {
+                document.getElementById("ExpirationDate").disabled = false;
+                document.getElementById("ExpirationDate").required = true;
+            }
+            else {
+                document.getElementById("ExpirationDate").disabled = true;
+                document.getElementById("ExpirationDate").required = false;
+            }
+        }
+    </script>
+
+    @*FOR ITEM DESCRIPTION BASED ON ITEM NUMBER*@
+    @*USING FETCH API*@
+    <script>
+        async function selectItem(itemId) {
+            let buElement = document.getElementById('BUName');
+            let itemDescriptionElement = document.getElementById('itemDescription');
+            let itemUOMelement = document.getElementById('UOM');
+            // Get the information of the selected item from the controller
+            const itemData = await fetch(`@Url.Action("api", "Incommings")/${itemId}/${buElement.value}`);
+            if (itemData.status === 200) {
+                const itemDetail = await itemData.json();
+                itemDescriptionElement.innerHTML = itemDetail[0].description;
+                itemUOMelement.innerHTML = itemDetail[0].unitOfMeasure;
+            }
+            else {
+                smallElement.innerHTML = "error";
+            }
+        };
+    </script>
+
+
+    @*FOR ITEM DESCRIPTION BASED ON ITEM NUMBER*@
+    @*USING FETCH API*@
+    <script>
+        async function selectBU(BUName) {
+            //Start the loading annimation
+            const div = document.createElement('div');
+            const CreateIncomingCard = document.getElementById('CreateIncomingCard');//Parent Div
+            div.classList.add('overlay');
+            div.id = 'myDiv';
+            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+            CreateIncomingCard.appendChild(div);
+
+            let buElement = document.getElementById('BUName');
+            let itemUOMelement = document.getElementById('UOM');
+            let itemDescriptionElement = document.getElementById('itemDescription');
+            let poNumElement = document.getElementById('PONumber');
+            let itemNumElement = document.getElementById('ItemId');
+            let quantityElement = document.getElementById('IncommingQuantity');
+            let unitPriceElement = document.getElementById('UnitPrice');
+            let expBtnElement = document.getElementById('expBtn');
+            let option = document.createElement('option');
+
+            //CLEAR EACH ELEMENT VALUE
+            poNumElement.value = '';
+            itemNumElement.value = '';
+            quantityElement.value = '';
+            unitPriceElement.value = '';
+            expBtnElement.value = '';
+            
+            //ENABLED EACH INPUTS
+            poNumElement.removeAttribute('disabled', '');
+            itemNumElement.removeAttribute('disabled', '');
+            quantityElement.removeAttribute('disabled', '');
+            unitPriceElement.removeAttribute('disabled', '');
+            expBtnElement.removeAttribute('disabled', '');
+
+            //Remove all previous options values in the select element
+            while (itemNumElement.options.length > 0) 
+            {
+                itemNumElement.remove(0);
+            }
+
+            //if (itemNumElement.options.length > 0) 
+            //{
+            //    for (i = 0; i < itemNumElement.options.length; i++) {
+            //        itemNumElement[i].remove(Option);
+            //    }
+            //}
+            // Get the information of the selected item from the controller
+            const itemData = await fetch(`@Url.Action("api", "Incommings")/${BUName}`);
+            if (itemData.status === 200) {
+                const itemDetail = await itemData.json();
+
+                for (i = 0; i < itemDetail.length; i++) 
+                {
+                    let option = document.createElement('option');
+                    let itemNumElement = document.getElementById('ItemId');
+                    option.text = itemDetail[i].itemNumber;
+                    option.value = itemDetail[i].id;
+                    itemNumElement.add(option); //add the new option
+                }
+                //itemDescriptionElement.innerHTML = itemDetail[i].description;
+                //itemUOMelement.innerHTML = itemDetail[i].unitOfMeasure;
+
+                //itemNumElement
+                //itemDescriptionElement.innerHTML = itemDetail[0].description;
+                //itemUOMelement.innerHTML = itemDetail[0].unitOfMeasure;
+
+                //Stop loading animation when all data is fetched
+                const myDiv = document.getElementById('myDiv');
+                myDiv.remove();
+            }
+            else 
+            {
+                smallElement.innerHTML = "error";
+                myDiv.remove();
+            }
+        };
+    </script>
+
+    @*DISABLED ALL ELEMENT WHEN THERE IS NO BU SELECTED*@
+    <script>
+        function disabledElements() {
+            let buElement = document.getElementById('BUName');
+            let poNumElement = document.getElementById('PONumber');
+            let itemNumElement = document.getElementById('ItemId');
+            let quantityElement = document.getElementById('IncommingQuantity');
+            let unitPriceElement = document.getElementById('UnitPrice');
+            let expBtnElement = document.getElementById('expBtn');
+            if (buElement.value == '') {
+                poNumElement.setAttribute('disabled', '');
+                itemNumElement.setAttribute('disabled', '');
+                quantityElement.setAttribute('disabled', '');
+                unitPriceElement.setAttribute('disabled', '');
+                expBtnElement.setAttribute('disabled', '');
+            }
+        };
+        window.onload = disabledElements;
+    </script>
+
+    @*ADD A SPINNING LOADING EFFECT WHEN CREATE FORM IS SUBMITTED*@
+    <script>
+        const formCreate = document.getElementById('CreateIncomingForm');
+        formCreate.addEventListener("submit", function (event) {
+            //Start the loading annimation
+            const div = document.createElement('div');
+            const CreateIncomingCard = document.getElementById('CreateIncomingCard');//Parent Div
+            div.classList.add('overlay');
+            div.id = 'myDiv';
+            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+            CreateIncomingCard.appendChild(div);
+        });
+    </script>
+
+}

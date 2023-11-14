@@ -1,0 +1,209 @@
+﻿@model IEnumerable<ShopSuppliesV3.ViewModel.Requests>
+@using ShopSuppliesV3.Helpers
+
+@{
+    ViewData["Title"] = "All Request";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+@section Styles
+{
+ <link rel="stylesheet" href="~/css/MyRequest.css" />
+    <link href="~/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" />
+    <link href="~/plugins/toastr/toastr.min.css" rel="stylesheet" />
+}
+
+@if(Model.Count() == 0)
+{
+    <div class="callout callout-danger text-sm">
+        <div class="row">
+            <div class="col-md-11">
+                <h6 class="font-weight-bold text-danger">Attention</h6>
+                <div class="text-dark">
+                    You do not have any order yet.
+                </div>
+                <div class="text-dark">
+                    You can select an item at the <a asp-action="Index" asp-controller="Store" class="text-primary">Store</a> or checkout your item at your <a asp-action="Index" asp-controller="Carts" class="text-primary">Cart</a>
+                </div>
+            </div>
+            <div class="col-md-1 d-flex text-right">
+                <h3 class="my-auto w-100 text-danger pr-2" style="opacity: 0.5;"><i class="fa fa-exclamation-triangle"></i></h3>
+            </div>
+        </div>
+    </div>
+}
+
+else
+{
+    <div class="card card-warning">
+        <div class="card-header">
+            <h3>My Latest Requests</h3>
+        </div>
+        <div class="card-body">
+            <div class="timeline timeline-inverse">
+
+                <div class="time-label">
+                    <span class="bg-success">
+                        @Model.First().DateRequested.ToString("MMM-dd-yyyy")
+                    </span>
+                </div>
+                <div>
+                    <div class="timeline-item">
+                        <h3 class="timeline-header"><a asp-action="OrderDetail">Order Detail</a></h3>
+                        <div class="timeline-body">
+                            <div class="track">
+                                <div class="step active" id="OrderPlaced">
+                                    <span class="icon"> <i class="fa fa-check"></i> </span>
+                                    <span class="text">Order Placed</span><small class="text-muted" id="OrderPlacedTime">@Model.First().DateRequested.ToString()</small>
+                                </div>
+                                @*THE REQUEST IS PENDING FOR APPROVAL*@
+                                @if (Model.First().RequestStatus.ToLower() == "for approval")
+                                {
+                                    <div class="step" id="ForApproval">
+                                        <span class="icon"> <i class="fa fa-user"></i> </span>
+                                        <span class="text">For Approval</span><small class="text-muted" id="ForApprovalTime">Approver: @Model.First().ApproverName</small>
+                                    </div>
+                                    <div class="step" id="ForIssuance">
+                                        <span class="icon"> <i class="fa fa-truck"></i> </span>
+                                        <span class="text">For Issuance</span><small class="text-muted" id="ForIssuanceTime"></small>
+                                    </div>
+                                }
+                                @*THE REQUEST IS HAS BEEN APPROVED*@
+                                else if (Model.First().RequestStatus.ToLower() == "approved" || Model.First().RequestStatus.ToLower() == "issued")
+                                {
+                                    <div class="step active" id="ForApproval">
+                                        <span class="icon"> <i class="fa fa-user"></i> </span>
+                                        <span class="text">APPROVED</span><small class="text-muted" id="ForApprovalTime">@Model.First().DateApproved?.ToString("g")</small>
+                                    </div>
+                                    <div class="step active" id="ForIssuance">
+                                        <span class="icon"> <i class="fa fa-truck"></i> </span>
+                                        <span class="text">For Issuance</span><small class="text-muted" id="ForIssuanceTime">Please visit the store</small>
+                                    </div>
+                                }
+                                @*THE REQUEST IS HAS BEEN APPROVED*@
+                                else if (Model.First().RequestStatus.ToLower() == "declined")
+                                {
+                                    <div class="step active" id="ForApproval">
+                                        <span class="icon active"> <i class="fa fa-user bg-danger"></i> </span>
+                                        <span class="text text-danger">DECLINED</span><small class="text-muted" id="ForApprovalTime">@Model.First().DateApproved?.ToString("g")</small>
+                                    </div>
+                                    <div class="step" id="ForIssuance">
+                                        <span class="icon"> <i class="fa fa-truck"></i> </span>
+                                        <span class="text">For Issuance</span><small class="text-muted" id="ForIssuanceTime"></small>
+                                    </div>
+                                }
+                                <div class="step @TrackingHelpers.ActivateTracker(TempData["DateIssued"].ToString())" id="Issued">
+                                    <span class="icon"> <i class="fa fa-box"></i> </span>
+                                    <span class="text">Issued</span><small class="text-muted" id="IssuedTime">@TempData["DateIssued"]</small>
+                                </div>
+                            </div>
+                        </div>  
+                        <div class="timeline-footer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>      
+    </div>
+
+    <div class="card card-primary" id="requestHistoryCard">
+        <div class="card-header">
+            <h3>Item Request History</h3>
+        </div>
+        <form id="requestHistoryForm" asp-action="RequestHistory" method="get">
+            <div class="card-body">
+                <h6 class="lead">Enter start and end date to filter your request.</h6>
+                <div class="form-group row">
+                    <div class="col-lg-2 col-md-6 col-sm-12">
+                        <input type="date" class="form-control" id="StartDate" name="StartDate" max="@DateTime.Now.ToString("yyyy-MM-dd")" required>
+                        <span><small class="text-muted">Select Start Date</small></span>
+                    </div>
+                    <div class="col-lg-2 col-md-6 col-sm-12">
+                        <input type="date" class="form-control" id="EndDate" name="EndDate" max="@DateTime.Now.ToString("yyyy-MM-dd")" required>
+                        <span><small class="text-muted">Select End Date</small></span>
+                    </div>
+                    <div class="col-lg-2 col-md-2 col-sm-12">
+                        <button type="button" class="btn btn-primary" onclick="submitForm()">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+
+
+
+    @section Scripts
+    {
+    @*FOR ALERTS*@
+    <script src="~/plugins/toastr/toastr.min.js"></script>
+    <script src="~/plugins/sweetalert2/sweetalert2.min.js"></script>
+
+    <script>
+        function submitForm() 
+        {         
+            const requestHistoryForm = document.getElementById('requestHistoryForm');
+            const startDate = document.getElementById('StartDate');
+            const endDate = document.getElementById('EndDate');
+            if(startDate.value == '' || endDate.value == '')
+            {
+                Swal.fire({
+                    title: 'No Date Selected',
+                    text: "Please select start and end date.",
+                    icon: 'error',
+                    showCancelButton: false,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ok'
+                });
+            }
+            else
+            {
+                if (startDate.value > endDate.value) {
+                    Swal.fire({
+                        title: 'Start Date Error',
+                        text: "Start date should be less than end date.",
+                        icon: 'error',
+                        showCancelButton: false,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Ok'
+                    });
+                }
+                else if (startDate.value <= endDate.value) {
+                    Swal.fire({
+                        title: 'Are you sure you want to proceed?',
+                        text: "",
+                        icon: 'success',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+
+                            const div = document.createElement('div');
+                            const parentDiv = document.getElementById('requestHistoryCard');//Parent Div
+                            div.classList.add('overlay');
+                            div.id = 'myDiv';
+                            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+                            parentDiv.appendChild(div);
+
+                            //Submit the form
+                            requestHistoryForm.submit();
+                        }
+                    });
+                }
+            }
+
+        }
+    </script>
+    }
+}

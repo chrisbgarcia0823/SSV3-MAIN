@@ -1,0 +1,449 @@
+﻿@model IEnumerable<ShopSuppliesV3.ViewModel.Incommings>
+@using ShopSuppliesV3.Helpers;
+
+@{
+    ViewData["Title"] = "Incoming List";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+@section Styles
+{
+    @*FOR DATATABLE*@
+    <link rel="stylesheet" href="~/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+
+    @*FOR ALERTS*@
+    <link href="~/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" />
+    <link href="~/plugins/toastr/toastr.min.css" rel="stylesheet" />
+}
+
+<div class="card card-outline card-danger">
+    <div class="card-header">
+        <h3>Incoming List</h3>
+        <a asp-action="Create" class="btn btn-primary">Add Incomming Item</a>
+    </div>
+    <div class="card-body">
+        <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="table-responsive">
+                        <table id="incomings" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                            <thead>
+                                <tr class="text-uppercase">
+                                    <td>Id</td>
+                                    <td>Item #</td>
+                                    <td>BU</td>
+                                    <td>PO #</td>
+                                    <td>Description</td>
+                                    <td>Supplier</td>
+                                    <td>Qty</td>
+                                    <td>Outgoing Qty</td>
+                                    <td>Hold Qty</td>
+                                    <td>Unit Price</td>
+                                    <td>Total Price</td>
+                                    <td>Added By</td>
+                                    <td>Status</td>
+                                    <td>Expiration Date</td>
+                                    <td>Date Added</td>
+                                    <td>Modify</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var incoming in Model)
+                                {
+                                    <tr>
+                                        <td>@incoming.Id</td>
+                                        <td>@incoming.ItemNumber</td>
+                                        <td>@incoming.BUName</td>
+                                        <td>@incoming.PONumber</td>
+                                        <td>@incoming.Description</td>
+                                        <td>@incoming.SupplierName</td>
+                                        <td>@incoming.Quantity</td>
+                                        <td>@incoming.TotalOutgoingQuantity?.ToString("0.####")</td>
+                                        <td>@incoming.TotalOnHoldQuantity.ToString("0.####")</td>
+                                        <td>@incoming.UnitPrice.ToString("0.####")</td>
+                                        <td>@incoming.TotalPrice.ToString("0.####")</td>
+                                        <td>@incoming.addedBy</td>
+                                        <td>@incoming.Status</td>
+                                        <td class="@NavigationHelpers.ExpDateChecker(incoming.ExpirationDate)">@NavigationHelpers.ExpDateWriter(incoming.ExpirationDate)</td>
+                                        <td>@incoming.DateAdded.ToString("g")</td>
+                                        <td class="text-center">
+                                            <div class="btn-group">
+                                                <button class="btn btn-warning" type="button" value="@incoming.ItemNumber" onclick="openModal(@incoming.Id, this.value, (@incoming.Quantity - @incoming.TotalOnHoldQuantity - @incoming.TotalOutgoingQuantity), @incoming.Quantity, @incoming.TotalOutgoingQuantity, @incoming.UnitPrice, @incoming.TotalOnHoldQuantity, '@incoming.BUName', '@incoming.PONumber')">Edit</button>&nbsp;
+                                                <button type="button" class="btn btn-danger delete-button" id="deleteBtn" name="deleteBtn" value="@incoming.Id" onclick="deleteIncoming(@incoming.Id)">Delete</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+@*MODAL FOR THE EDITING THE INCOMING*@
+<div id="modalEdit" class="modal fade" data-backdrop="static" data-keyboard="false" role="dialog">
+    <form asp-action="EditIncoming" asp-controller="Incommings" method="post" id="editForm">
+        <div class="modal-dialog">
+            <div class="modal-content" id="EditModal">
+                <div class="modal-header bg-warning">
+                    <h3 id="modalH1"></h3>
+                    <input type="hidden" id="IncomingId" name="IncomingId" />
+                    <input type="hidden" id="IncomingQty" name="IncomingQty" />
+                    <input type="hidden" id="OutgoingQty" name="OutgoingQty" />
+                    <input type="hidden" id="UnitPrice" name="UnitPrice" />
+                    <input type="hidden" id="OnHoldQty" name="OnHoldQty" />
+                    <input type="hidden" id="BUname" name="BUname" />
+                    <input type="hidden" id="POnumber" name="POnumber" />
+                    @*<input type="hidden" id="IncomingItemId" name="IncomingItemId" />*@
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <label for="Action">Select Status</label> <span class="text-danger">*</span>
+                        <select class="form-control" id="Action" name="Action" onchange="maxQty()" required>
+                            <option value="" selected disabled></option>
+                            <option value="Pullout">Pull-out</option>
+                            <option value="Pullin">Pull-in</option>
+                        </select>
+                    </div>
+                    <div class="form-group row">
+                        <label for="Quantity">Input Quantity</label> <span class="text-danger">*</span>
+                        <input type="number" class="form-control" id="Quantity" name="Quantity" min="0" required />
+                        <span><small class="text-muted" id="QuantitySpan" name="QuantitySpan"></small></span>
+                    </div>
+                    <div class="form-group row">
+                        <label for="Reason">Reason</label> <span class="text-danger">*</span>
+                        <input type="text" class="form-control" id="Reason" name="Reason" required />
+                    </div>
+                    <div class="form-group row">
+                        <label for="Buyers">Select Buyer</label> <span class="text-danger">*</span>
+                        <select id="Buyer" name="Buyer" class="form-control" required>
+                            <option value="" disabled selected>Select Buyer</option>
+                            @foreach (var buyer in ViewData["Buyers"] as List<SSv3_GAL_USERTBL>)
+                            {
+                                <option value="@buyer.Id">@buyer.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col">
+                        <button type="submit" class="btn btn-primary">Proceed</button>
+                    </div>
+                    <div class="col text-right">
+                        <button type="button" data-dismiss="modal" class="btn btn-default">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+
+@*MODAL FOR THE DELETE*@
+<div id="modalDelete" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <input type="hidden" id="IncomingId" name="IncomingId" />
+        <div class="modal-content" id="IncomingModalDelete">
+            <div class="modal-header bg-danger">
+                <h3 id="modalDeleteTitle"></h3>
+            </div>
+            <div class="modal-body">
+                <div class="callout callout-danger text-sm">
+                    <div class="row">
+                        <div class="col-md-11">
+                            <h6 class="font-weight-bold text-danger">Attention</h6>
+                            <div class="text-dark">
+                                You cannot delete Incoming that has active request.
+                            </div>
+                            <div class="text-dark">
+                                Please use this to delete eronous entry only.
+                            </div>
+                        </div>
+                        <div class="col-md-1 d-flex text-right">
+                            <h3 class="my-auto w-100 text-danger pr-2" style="opacity: 0.5;"><i class="fa fa-exclamation-triangle"></i></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col">
+                    <button type="button" class="btn btn-danger" id="ConfirmBtn" onclick="confirmedDelete()">Yes</button>
+                </div>
+                <div class="col text-right">
+                    <button type="button" data-dismiss="modal" class="btn btn-default">Cancel</button>
+                </div>
+            </div>
+        </div>
+        @*        </form>*@
+    </div>
+</div>
+
+
+@section Scripts
+{
+    @*OPEN MODAL PASSING THE VALUES*@
+    <script>
+        function openModal(incomingId, itemNumber, maxQty, incomingQty, outgoingQty, unitPrice, onHoldQty, buName, poNumber) 
+        {
+            const IncomingId = document.getElementById('IncomingId');
+            const UnitPrice = document.getElementById('UnitPrice');
+            const IncomingQty = document.getElementById('IncomingQty');
+            const OnHoldQty = document.getElementById('OnHoldQty');
+            const BUname = document.getElementById('BUname');
+            const POnumber = document.getElementById('POnumber');
+            //const IncomingQty = document.getElementById('IncomingItemId');
+            const OutgoingQty = document.getElementById('OutgoingQty'); //The tota outgoing quantity
+            const Status = document.getElementById('Action');
+            //const QuantitySpan = document.getElementById('QuantitySpan');
+            const Quantity = document.getElementById('Quantity');
+            let modalItem = document.getElementById('modalH1');
+            IncomingId.value = incomingId;
+            IncomingQty.value = incomingQty;
+            OutgoingQty.value = outgoingQty;
+            OnHoldQty.value = onHoldQty;
+            BUname.value = buName;
+            POnumber.value = poNumber;
+            //IncomingQty.value = incomingItemId;
+            UnitPrice.value = unitPrice;
+            //Quantity.max = parseFloat(maxQty);
+            //QuantitySpan.innerHTML = "Max quantity: " + parseFloat(maxQty);
+            modalItem.innerHTML = "Make adjustment for inventory #" + incomingId + " - " + itemNumber;
+            $('#modalEdit').modal('show');
+        }
+    </script>
+
+    @*CHANGE MAX VALUE BASED ON ACTION*@
+    <script>
+        function maxQty()
+        {
+            const Action = document.getElementById('Action');
+            const Quantity = document.getElementById('Quantity');
+            const QuantitySpan = document.getElementById('QuantitySpan');
+            const IncomingQty = document.getElementById('IncomingQty');
+            const OutgoingQty = document.getElementById('OutgoingQty');
+            const OnHoldQty = document.getElementById('OnHoldQty');
+            if(Action.value.toLowerCase() == 'pullout')
+            {
+                Quantity.max = parseFloat(IncomingQty.value) - parseFloat(OutgoingQty.value) - parseFloat(OnHoldQty.value)
+                QuantitySpan.innerHTML = "Max quantity: " + Quantity.max;
+            }
+            else if(Action.value.toLowerCase() == 'pullin')
+            {
+                Quantity.max = parseFloat(OnHoldQty.value)
+                QuantitySpan.innerHTML = "Max quantity: " + Quantity.max;
+            }
+        }
+    </script>
+
+    @*ADD A SPINNING LOADING EFFECT WHEN EDIT FORM IS SUBMITTED*@
+    <script>
+        const form = document.getElementById('editForm');
+        form.addEventListener("submit", function (event) {
+            //Start the loading annimation
+            const div = document.createElement('div');
+            const parentDiv = document.getElementById('EditModal');//Parent Div
+            div.classList.add('overlay');
+            div.id = 'myDiv';
+            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+            parentDiv.appendChild(div);
+        });
+    </script>
+
+    @*CLEAR MODAL EDIT INPUT VALUES WHEN CLOSED*@
+    <script>
+        $('#modalEdit').on('hidden.bs.modal', function () {
+            // Clear the value of all input and select elements in the modal
+            $(this).find('input, select').val('');
+        });
+    </script>
+
+
+    @*CLEAR MODAL EDIT INPUT VALUES WHEN CLOSED*@
+    <script>
+        $('#modalDelete').on('hidden.bs.modal', function () {
+            // Clear the value of all input and select elements in the modal
+            $(this).find('input').val('');
+        });
+    </script>
+
+
+    @*FOR DATATABLE*@
+    <script src="~/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+    <script src="~/plugins/jszip/jszip.min.js"></script>
+    <script src="~/plugins/pdfmake/pdfmake.min.js"></script>
+    <script src="~/plugins/pdfmake/vfs_fonts.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+
+    <script>
+        $(function () {
+            $("#incomings").DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "paging": false,
+                "info": true,
+                "paging": true,
+                "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+            }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+        });
+    </script>
+
+
+    @*DELETE CODE WHEN BUTTON IS CLICKED*@
+    <script>
+        function deleteIncoming(incomingId) {
+            const IncomingIdModal = document.getElementById('IncomingId');
+            IncomingIdModal.value = incomingId;
+            $('#modalDelete').modal('show');
+        }
+    </script>
+    <script>
+        async function confirmedDelete() {
+            const IncomingIdModal = document.getElementById('IncomingId');
+            const incomingId = IncomingIdModal.value;
+            var row = $('.delete-button').closest('tr');//get the row that was closest to the delete-button class that was clicked
+            //var row = deleteItem(itemId);
+            var table = $('#incomings').DataTable();
+
+            //Start the loading annimation
+            const div = document.createElement('div');
+            const IncomingModalDelete = document.getElementById('IncomingModalDelete');//Parent Div
+            div.classList.add('overlay');
+            div.id = 'myDiv';
+            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+            IncomingModalDelete.appendChild(div);
+
+            //FOR ALERT
+            var Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            });
+
+            //Perform delete item using fetch API
+            const deleteIncoming = await fetch(`@Url.Action("DeleteIncoming", "Incommings")/${incomingId}`)
+            {
+                if (deleteIncoming.status === 200) //delete is performed
+                {
+                    const results = await deleteIncoming.text(); //convert to string/text
+
+                    //Hide the Modal Delete
+                    $('#modalDelete').modal('hide');
+
+                    if (results == "Delete Success") {
+                        //Remove the SPINNING LOADING EFFECT WHEN ALL DATA IS LOADED
+                        const div = document.getElementById('myDiv');
+                        div.remove();
+
+                        //Delete the item row in the data table
+                        table.row(row).remove().draw()
+
+                        //Add alert for the success delete (visual confirmation)
+                        return toastr.success("Incoming item deleted successfully");
+
+                    }
+                    else if (results == "Delete Error Active") {
+
+                        //Remove the SPINNING LOADING EFFECT WHEN ALL DATA IS LOADED
+                        const div = document.getElementById('myDiv');
+                        div.remove();
+
+                        //Add alert for the error on delete (visual confirmation)
+                        return toastr.error("Incoming item cannot be deleted. Item has been issued");
+                    }
+                    else if (results == "Delete Error OnHold") {
+
+                        //Remove the SPINNING LOADING EFFECT WHEN ALL DATA IS LOADED
+                        const div = document.getElementById('myDiv');
+                        div.remove();
+
+                        //Add alert for the error on delete (visual confirmation)
+                        return toastr.error("Incoming item cannot be deleted. Item has an active on hold quantity");
+                    }
+                    else if (results == "Item Not Exist") {
+
+                        //Remove the SPINNING LOADING EFFECT WHEN ALL DATA IS LOADED
+                        const div = document.getElementById('myDiv');
+                        div.remove();
+
+                        //Add alert for the error on delete (visual confirmation)
+                        return toastr.error("Incoming item does not exist.");
+                    }
+                    else if (results == "Delete Error") {
+
+                        //Remove the SPINNING LOADING EFFECT WHEN ALL DATA IS LOADED
+                        const div = document.getElementById('myDiv');
+                        div.remove();
+
+                        //Add alert for the error on delete (visual confirmation)
+                        return toastr.error("Incoming delete error. Please contact your app developer.");
+                    }
+                    else 
+                    {
+                        //Remove the SPINNING LOADING EFFECT WHEN ALL DATA IS LOADED
+                        const div = document.getElementById('myDiv');
+                        div.remove();
+
+                        //Add alert for the error on delete (visual confirmation)
+                        return toastr.error("Unauthorized User")
+                    }
+
+                }
+                else {
+                    //Remove the SPINNING LOADING EFFECT WHEN ALL DATA IS LOADED
+                    const div = document.getElementById('myDiv');
+                    div.remove();
+
+                    //Hide the Modal Delete
+                    $('#modalDelete').modal('hide');
+
+                    //Add alert for the error on delete (visual confirmation)
+                    return toastr.error("Incoming item delete error. Please contact your app developer.");
+                }
+            }
+        }
+    </script>
+
+
+    @*FOR ALERTS*@
+    <script src="~/plugins/sweetalert2/sweetalert2.min.js"></script>
+    <script src="~/plugins/toastr/toastr.min.js"></script>
+    @if (TempData["EditIncomingSuccess"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.success("Incoming item #@TempData["EditIncomingSuccess"] modify successfully ")
+            });
+        </script>
+    }
+}

@@ -1,0 +1,214 @@
+﻿@model IEnumerable<ShopSuppliesV3.ViewModel.Approvals>
+@using ShopSuppliesV3.Helpers
+
+@{
+    ViewData["Title"] = "Aprrovals Index";
+
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+@section Styles
+{
+    @*FOR ALERTS*@
+    <link href="~/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" />
+    <link href="~/plugins/toastr/toastr.min.css" rel="stylesheet" />
+
+    @*FOR DATATABLE*@
+    <link rel="stylesheet" href="~/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+}
+
+@if(TempData["AccessType"].ToString().ToLower() == "approver")
+{
+    <div class="card card-outline card-danger" id="approvalsCard">
+        <div class="card-header">
+            <h3>For Approvals</h3>
+        </div>
+        <div class="card-body">
+            <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="table-responsive">
+                            <table id="approvals" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                                <thead>
+                                    <tr>
+                                        <td>#</td>
+                                        <td>Request #</td>
+                                        <td>Requestor Name</td>
+                                        <td>Date Requested</td>
+                                        <td>Actions</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var approval in Model)
+                                    {
+                                        <tr>
+                                            <td>@approval.Id</td>
+                                            <td>@approval.ForApprovalId</td>
+                                            <td>@approval.RequestorName</td>
+                                            <td>@approval.RequestedDate.ToString("g")</td>
+                                            <td class="text-center">
+                                                <div class="btn-group">
+                                                    <a href="@Url.Action("OrderDetail", "Requests", new{approvalId = approval.Id, requestType = "approver"})" class="btn btn-primary">Details</a>&nbsp;
+                                                    <a href="@Url.Action("UpdateRequest", "Approvals", new{ON = approval.OrderNumbers, CU=User.Identity.Name.Substring(5), YN=1, AO=approval.IsAdvanceOder, RD=approval.RequestedDate.ToString("MMM-dd-yyyy"), AID=approval.ForApprovalId})" class="btn btn-success" id="linkBtn" onclick="loadEffect()">Approve</a>&nbsp;
+                                                    <a href="@Url.Action("UpdateRequest", "Approvals", new{ON = approval.OrderNumbers, CU=User.Identity.Name.Substring(5), YN=2, AO=approval.IsAdvanceOder, RD=approval.RequestedDate.ToString("MMM-dd-yyyy"), AID=approval.ForApprovalId})" class="btn btn-danger" id="linkBtn" onclick="loadEffect()">Decline</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+        </div>
+    </div>
+}
+else if (TempData["AccessType"].ToString().ToLower() == "buyer")
+{
+    <div class="card card-outline card-danger" id="approvalsCard">
+        <div class="card-header">
+            <h3>For Approvals</h3>
+        </div>
+        <div class="card-body">
+            <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="table-responsive">
+                            <table id="approvals" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                                <thead>
+                                    <tr>
+                                        <td>#</td>
+                                        <td>Request #</td>
+                                        <td>Requestor Name</td>
+                                        <td>Date Requested</td>
+                                        <td>Actions</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var request in Model)
+                                    {
+                                        <tr>
+                                            <td>@request.Id</td>
+                                            <td>@request.OrderNumber</td>
+                                            <td>@request.RequestorName</td>
+                                            <td>@request.RequestedDate.ToString("g")</td>
+                                            <td class="text-center">
+                                                <div class="btn-group">
+                                                    <a href="@Url.Action("Requests", "RequestDetails", new{requestType = "buyer", pulloutRequestId = request.Id})" class="btn btn-primary">Details</a>&nbsp;
+                                                    <a href="@Url.Action("PulloutApproval", "Approvals", new{RI = request.Id, CU=User.Identity.Name.Substring(5), IN=request.IncomingId, YN=1})" class="btn btn-success" id="linkBtn" onclick="loadEffect()">Approve</a>&nbsp;
+                                                    <a href="@Url.Action("PulloutApproval", "Approvals", new{RI = request.Id, CU=User.Identity.Name.Substring(5), IN=request.IncomingId, YN=2})" class="btn btn-danger" id="linkBtn" onclick="loadEffect()">Decline</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+        </div>
+    </div>
+}
+
+
+
+@section Scripts
+{
+    @*FOR DATATABLE*@
+    <script src="~/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+    <script src="~/plugins/jszip/jszip.min.js"></script>
+    <script src="~/plugins/pdfmake/pdfmake.min.js"></script>
+    <script src="~/plugins/pdfmake/vfs_fonts.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+
+    <script>
+        $(function () {
+            $("#approvals").DataTable({
+                "order": [[0, 'desc']],
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "paging": false,
+                "info": true,
+                "paging": true,
+                "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+            }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+        });
+    </script>
+
+
+    @*ADD A SPINNING LOADING EFFECT WHEN APPROVED/DECLINED IS CLIKED*@
+    <script>
+        function loadEffect()
+        {
+            const linkBtn = document.getElementById('linkBtn');
+            //Start the loading annimation
+            const div = document.createElement('div');
+            const parentDiv = document.getElementById('approvalsCard');
+            div.classList.add('overlay');
+            div.id = 'myDiv';
+            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+            parentDiv.appendChild(div);
+        }
+    </script>
+
+
+    @*FOR ALERTS*@
+    <script src="~/plugins/sweetalert2/sweetalert2.min.js"></script>
+    <script src="~/plugins/toastr/toastr.min.js"></script>
+
+
+    @*ALERT IF ORDER IS DECLINED*@
+    @if (TempData["RequestDeclined"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.success("Request @TempData["RequestDeclined"] was successfully declined.")
+            });
+        </script>
+    }
+
+    @*ALERT IF ORDER IS APPROVED*@
+    @if (TempData["RequestApproved"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.success("Request @TempData["RequestApproved"] was successfully approved.")
+            });
+        </script>
+    }
+}

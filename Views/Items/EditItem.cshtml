@@ -1,0 +1,122 @@
+﻿@model ShopSuppliesV3.ViewModel.Items
+@using ShopSuppliesV3.Helpers
+
+@{
+    ViewData["Title"] = "Edit Item";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+<div class="card mx-auto" style="width: 30rem" id="EditItemCard">
+    <div class="card-header bg-warning">
+        <h3>Edit Item @Model.ItemNumber</h3>
+    </div>
+    <div class="card-body">
+        <form asp-action="EditItem" method="post" id="EditItemForm">
+            <input type="hidden" value="@Model.Id" name="ItemId" id="ItemId"/>
+            <div class="form-group row">
+                <label for="BUName">BU</label> <span class="text-danger">*</span>
+                <select id="BUName" name="BUName" class="form-control" required>
+                    <option value="" selected disabled>Select BU</option>
+                    @foreach (var bu in ViewData["BU"] as List<string>)
+                    {
+                        <option value="@bu">@bu</option>
+                    }
+                </select>
+                <small class="text-muted">Previous BU:@Model.BUName</small>
+            </div>
+            <div class="form-group row">
+                <label for="BuyerName">Select Buyer</label> <span class="text-danger">*</span>
+                <select id="BuyerName" name="BuyerName" class="form-control" required>
+                    <option value="" selected disabled>Select Buyer</option>
+                    @foreach (var buyer in ViewData["BuyerName"] as List<string>)
+                    {
+                        <option value="@buyer">@buyer</option>
+                    }
+                </select>
+                <small class="text-muted">Previous Buyer:@Model.BuyerName</small>
+            </div>
+            <div class="form-group row">
+                <div class="col">
+                    <label for="ItemNumber">Item Number</label> <span class="text-danger">*</span>
+                    <input type="text" class="form-control" id="ItemNumber" name="ItemNumber" value="@Model.ItemNumber" required />
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col">
+                    <label for="SupplierId">Supplier</label> <span class="text-danger">*</span>
+                    <select class="form-control" id="SupplierId" name="SupplierId" required>
+                        <option value="" disabled selected>Select Supplier</option>
+                        @foreach (var supplier in ViewData["Suppliers"] as List<ShopSuppliesV3.Models.SSv3_GAL_SUPPLIERTBL>)
+                        {
+                            <option value="@supplier.Id">@supplier.SupplierName</option>
+                        }
+                    </select>
+                    <small class="text-muted">Previous Supplier:@Model.SupplierName</small>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col">
+                    <label for="Description">Description</label> <span class="text-danger">*</span>
+                    <input type="text" class="form-control" id="Description" name="Description" value="@Model.Description" required />
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col">
+                    <label for="Description">Safety Stock</label> <span class="text-danger">*</span>
+                    <input type="number" class="form-control" min="0" step="0.1" id="SafetyStock" name="SafetyStock" value="@Model.SafetyStock" required />
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col">
+                    <label for="UnitOfMeasure">Unit of Measure</label> <span class="text-danger">*</span>
+                    <select class="form-control" id="UnitOfMeasure" name="UnitOfMeasure" required>
+                        <option value="" disabled selected>Select UM</option>
+                        @foreach (var um in ViewData["UnitOfMeasure"] as List<string>)
+                        {
+                            <option value="@um">@um</option>
+                        }
+                    </select>
+                    <small class="text-muted">Previous UOM:@Model.UnitOfMeasure</small>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                </div>
+                <div class="col text-right">
+                    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts
+{
+    @*ADD A SPINNING LOADING EFFECT WHEN DELETE FORM IS SUBMITTED*@
+    <script>
+        const formEdit = document.getElementById('EditItemForm');
+        formEdit.addEventListener("submit", function (event) {
+            //Start the loading annimation
+            const div = document.createElement('div');
+            const EditItemCard = document.getElementById('EditItemCard');//Parent Div
+            div.classList.add('overlay');
+            div.id = 'myDiv';
+            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+            EditItemCard.appendChild(div);
+        }
+        );
+    </script>
+
+    @*ALERT UPON LOAD OF PAGE*@
+    <script>
+        alert("Editing item that are already in the incoming, issued, or requested may cause an error. Please use this for newly created items only.");
+    </script>
+}

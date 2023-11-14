@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Controllers\CardexController.cs" />
+    <Compile Remove="ViewModel\Cart.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Views\AccessTypes\Create.cshtml" />
+    <Content Remove="Views\Area\Create.cshtml" />
+    <Content Remove="Views\BU\Create.cshtml" />
+    <Content Remove="Views\Category\Create.cshtml" />
+    <Content Remove="Views\Home\Privacy.cshtml" />
+    <Content Remove="Views\Requests\TestView.cshtml" />
+    <Content Remove="Views\Store\TableView.cshtml" />
+    <Content Remove="Views\Suppliers\Create.cshtml" />
+    <Content Remove="Views\UM\Create.cshtml" />
+    <Content Remove="Views\Users\Create.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Views\Outgoing\Index.cshtml" />
+    <None Include="Views\Outgoing\IssueRequestedItem.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="6.0.15" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.21" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.21">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.16" />
+  </ItemGroup>
+
+</Project>

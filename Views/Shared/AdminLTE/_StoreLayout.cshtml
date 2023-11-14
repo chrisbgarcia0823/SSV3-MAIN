@@ -1,0 +1,103 @@
+﻿@using ShopSuppliesV3.Helpers;
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+
+    <title>SSV3 | @ViewData["Title"]</title>
+    <partial name="AdminLTE/_Styles" />
+    <link rel="icon" type="image/jpg" href="~/img/logo3.jpg">
+    @RenderSection("Styles", required: false)
+    @*    @{
+    string Layout = "Default";
+
+    if (ViewBag.Layout != null)
+    {
+    if (!string.IsNullOrWhiteSpace(ViewBag.Layout))
+    {
+    Layout = ViewBag.Layout;
+    }
+    }
+    }*@
+
+</head>
+<body class="layout-top-nav">
+    <div class="wrapper">
+        @*<partial name="AdminLTE/_PreLoader" />*@
+        <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+            <!-- Left navbar links -->
+            <ul class="navbar-nav">
+                @*                <li class="nav-item">
+                <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+                </li>*@
+                <li class="nav-item d-none d-sm-inline-block">
+                    <a href="@Url.Action("Index", "Home")" class="nav-link @Url.MakeActiveClass("Home")">Dashboard</a>
+                </li>
+                <li class="nav-item d-none d-sm-inline-block">
+                    <a href="@Url.Action("Index", "Store")" class="nav-link @Url.MakeActiveClass("Store")">Store</a>
+                </li>
+                <li class="nav-item d-none d-sm-inline-block">
+                    <a href="@Url.Action("Index", "Carts")" class="nav-link @Url.MakeActiveClass("Carts")">Orders</a>
+                </li>
+                <li class="nav-item d-none d-sm-inline-block">
+                    <a href="@Url.Action("MyRequest", "Requests")" class="nav-link @Url.MakeActiveClass("Requests", "MyRequest")">Requests</a>
+                </li>
+            </ul>
+
+            <!-- Right navbar links -->
+            <ul class="navbar-nav ml-auto mr-3">
+                <!-- Messages Dropdown Menu -->
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("Index", "Carts")">
+                        <h4><i class="fas fa-cart-plus"></i></h4>
+                        <span class="badge badge-danger navbar-badge">@MainNavNotif.CartItemCount(User.Identity.Name.Substring(5))</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("MyRequest", "Requests")">
+                        <h4><i class="far fa-bell"></i></h4>
+                        <span class="badge badge-warning navbar-badge">@MainNavNotif.RequesStatusNotif(User.Identity.Name.Substring(5))</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    &nbsp;
+                </li>
+            </ul>
+        </nav>
+        <div class="content-wrapper">
+            <div class="content-header" id="contentHeader" name="contentHeader"> @*USED FOR MODAL ALERT IN THE STORE VIEW*@
+                @*<div class="container-fluid">
+                <div class="row mb-2">
+                <div class="col-sm-6">
+                <h1 class="m-0 text-dark">Starter Page</h1>
+                </div>
+                <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                <li class="breadcrumb-item active">Starter Page</li>
+                </ol>
+                </div>
+                </div>
+                </div>*@
+            </div>
+            <div class="content">
+                <div class="container-fluid">
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+        <aside class="control-sidebar control-sidebar-dark">
+            <div class="p-3">
+                <h5>Title</h5>
+                <p>Sidebar content</p>
+            </div>
+        </aside>
+        <partial name="AdminLTE/_Footer" />
+    </div>
+    <partial name="AdminLTE/_Scripts" />
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

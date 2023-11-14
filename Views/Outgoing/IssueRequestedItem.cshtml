@@ -1,0 +1,336 @@
+﻿@model ShopSuppliesV3.ViewModel.Requests
+@using ShopSuppliesV3.ViewModel
+@using ShopSuppliesV3.Helpers
+
+@{
+    ViewData["Title"] = "Realease Request Item";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+@section Styles{
+    <style>
+        .my-custom-scrollbar {
+            position: relative;
+            height: 20rem;
+            overflow: auto;
+        }
+
+        .table-wrapper-scroll-y {
+            display: block;
+        }
+    </style>
+    <link href="~/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" />
+    <link href="~/plugins/toastr/toastr.min.css" rel="stylesheet" />
+
+}
+
+
+@*FOR CONTINUATION*@
+<form asp-action="IssueRequestedItem" method="post" id="IssueForm">
+    @*USE THIS INSTEAD OF HIDDEN INPUTS THEN QUERY IN THE DATABASE USING THE SAME AS THE GET QUERY*@
+    <input asp-for="ItemId" value="@Model.ItemId" type="hidden" />
+    <input asp-for="Id" value="@Model.Id" type="hidden" />
+    <input asp-for="QuantityRequested" value="@Model.QuantityRequested" type="hidden" />
+    <input asp-for="RequestorUserId" value="@Model.RequestorUserId" type="hidden" />
+
+    <div id="modal-released" class="modal fade" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content" id="ParentDiv">
+                <div class="modal-header">
+                    <div class="small-box bg-success col-12">
+                        <div class="inner">
+                            <h3 id="itemName">Issue @Model.ItemNumber?</h3>
+                            <p class="small-box-footer>More info" id="requestorName">Issue this item to @Model.RequestorName?</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <p class="small-box-footer>More info">Please <strong>review</strong> the following information before issuing the item.</p>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-3 col-6">
+                            <div class="description-block border-right">
+                                <h4><strong class="text-success">@Model.BUname</strong></h4>
+                                <span class="description-text">BU</span>
+                            </div>
+
+                        </div>
+
+                        <div class="col-sm-3 col-6">
+                            <div class="description-block border-right">
+                                <h4><strong class="text-success">@Model.AreaName</strong></h4>
+                                <span class="description-text">Area</span>
+                            </div>
+
+                        </div>
+
+                        <div class="col-sm-3 col-6">
+                            <div class="description-block border-right">
+                                <h4><strong class="text-success">@Model.ItemDescription</strong></h4>
+                                <span class="description-text">Item Description</span>
+                            </div>
+
+                        </div>
+
+                        <div class="col-sm-3 col-6">
+                            <div class="description-block">
+                                <h4><strong class="text-success">@Model.RequestStatus</strong></h4>
+                                <span class="description-text">Request Status</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-3 col-6">
+                            <div class="description-block border-right">
+                                <h4><strong class="text-success" id="requestedQty">@Model.QuantityRequested</strong></h4>
+                                <span class="description-text">Quantity Requested</span>
+                            </div>
+
+                        </div>
+
+                        <div class="col-sm-3 col-6">
+                            <div class="description-block border-right">
+                                <h4><strong class="text-success">@Model.UnitOfMeasure</strong></h4>
+                                <span class="description-text">UOM</span>
+                            </div>
+
+                        </div>
+
+                        <div class="col-sm-3 col-6">
+                            <div class="description-block border-right">
+                                <h4><strong class="text-success">@Model.Purpose</strong></h4>
+                                <span class="description-text">Purpose</span>
+                            </div>
+
+                        </div>
+
+                        <div class="col-sm-3 col-6">
+                            <div class="description-block">
+                                <h4><strong class="text-success">@Model.DateRequested.ToString("MMM-dd-yyyy")</strong></h4>
+                                <span class="description-text">Requested Date</span>
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
+                    <h3 class="text-center">Select Item Batch To Issue</h3>
+                    <div class="row table-responsive table-wrapper-scroll-y my-custom-scrollbar">
+                        <table class="table table-hover table-striped">
+                            <thead class="thead-light">
+                                <tr>
+                                    <td><strong class="text-uppercase">Incoming Id</strong></td>
+                                    <td><strong class="text-uppercase">PO Number</strong></td>
+                                    <td><strong class="text-uppercase">Item Status</strong></td>
+                                    <td><strong class="text-uppercase">Expiration Date</strong></td>
+                                    <td><strong class="text-uppercase">Date Added</strong></td>
+                                    <td><strong class="text-uppercase">Remaining Quantity</strong></td>
+                                    <td><strong class="text-uppercase">Quantity to Issue</strong></td>
+                                    <td><strong>Unit Cost</strong></td>
+                                    <td><strong>Total Cost</strong></td>
+                                    <td>Remarks</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var incomming in ViewData["InventoryItemList"] as List<SSv3_GAL_INCOMMINGTBL>)
+                                {
+                                    <tr>
+                                        <td>@incomming.Id</td>
+                                        <td>@incomming.PONumber</td>
+                                        <td>@incomming.Status</td>
+                                        <td class="@NavigationHelpers.ExpDateChecker(incomming.ExpirationDate)">@NavigationHelpers.ExpDateWriter(incomming.ExpirationDate)</td>
+                                        <td>@incomming.DateAdded.ToString("MMM-dd-yyyy")</td>
+                                        <td>@(incomming.IncommingQuantity - incomming.TotalOutgoingQuantity)</td>
+                                        <td>
+                                            @*name of the input corresponds to inventory id*@
+                                            <input class="form-control" type="number" min="0" max="@(incomming.IncommingQuantity - incomming.TotalOutgoingQuantity)" step="0.0001" name="@incomming.Id" id="issuedQty" onchange="inputValidation(this.value, this.max, this.classList, this.name, @incomming.UnitPrice)" />
+                                            <span class="text-muted"><small>Max quantity to issue: @(incomming.IncommingQuantity - incomming.TotalOutgoingQuantity)</small></span>
+                                        </td>
+                                        @*<td id="UnitCost-@incomming.Id" name="UnitCost">@incomming.UnitPrice</td>*@
+                                        <td>
+                                            <input id="UnitCost-@incomming.Id" name="UnitCost-@incomming.Id" readonly class="border-0 form-control" value="@incomming.UnitPrice" />
+                                        </td>
+                                        @*<td id="TotalCost-@incomming.Id" name="TotalCost"></td>*@
+                                        <td>
+                                            <input id="TotalCost-@incomming.Id" name="TotalCost-@incomming.Id" readonly class="border-0 form-control" />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control" id="Remarks-@incomming.Id" name="Remarks-@incomming.Id" />
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col">
+                        <button type="button" class="btn btn-primary" onclick="getQty()">Submit</button>
+                    </div>
+                    <div class="col text-right">
+                        <a href="@Url.Action("IssuanceRequestDetails","Issuance", new{cartId = Model.RequestorUserId})" class="btn btn-default">Back To Request</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts
+    {
+
+    <script>
+        $(window).on('load', function () {
+            $('#modal-released').modal('show');
+        });
+    </script>
+    @*FOR ALERTS*@
+    <script src="~/plugins/toastr/toastr.min.js"></script>
+    <script src="~/plugins/sweetalert2/sweetalert2.min.js"></script>
+
+    @*FOR ISSUANCE INPUT VALIDATION*@
+    <script>
+        function inputValidation(inputValue, maxValue, classList, elementName, unitCost) {
+            let selectedInput = document.getElementsByName(elementName);
+            let requestedQuntity = document.getElementById('requestedQty').innerHTML;
+            let spanElement = selectedInput[0].nextElementSibling;
+            let totalCost = document.getElementById('TotalCost-'+elementName);
+            if (parseFloat(inputValue) > maxValue) {
+                classList.add("is-invalid");
+                classList.remove("is-warning");
+                spanElement.classList.remove("text-danger");
+                spanElement.classList.remove("text-muted");
+                spanElement.classList.add("text-danger");
+                //totalCost.innerHTML = 'ERROR';
+                totalCost.value = 'ERROR';
+            }
+            else if (parseFloat(inputValue) < parseFloat(requestedQuntity)) {
+                classList.add("is-warning");
+                classList.remove("is-invalid");
+                spanElement.classList.remove("text-danger");
+                spanElement.classList.remove("text-muted");
+                spanElement.classList.add("text-warning");
+                //totalCost.innerHTML = (parseFloat(unitCost) * parseFloat(inputValue));
+                totalCost.value = (parseFloat(unitCost) * parseFloat(inputValue));
+            }
+            else {
+                classList.remove("is-warning");
+                classList.remove("is-invalid");
+                spanElement.classList.remove("text-danger");
+                spanElement.classList.remove("text-warning");
+                spanElement.classList.add("text-muted");
+                //totalCost.innerHTML = (parseFloat(unitCost) * parseFloat(inputValue));
+                totalCost.value = (parseFloat(unitCost) * parseFloat(inputValue));
+            }
+        }
+    </script>
+
+    <script>
+        function getQty() {
+            let requestorName = document.getElementById('requestorName').innerHTML;
+            let itemName = document.getElementById('itemName').innerHTML;
+            let totalIssuedQty = 0;
+            let requestedQuntity = document.getElementById('requestedQty').innerHTML;
+            const allInputElement = document.querySelectorAll('#issuedQty');
+
+            for (let i = 0; i < allInputElement.length; i++) {
+                if (parseFloat(allInputElement[i].value) > 0) {
+                    totalIssuedQty = parseFloat(totalIssuedQty) + parseFloat(allInputElement[i].value)
+                };
+            };
+
+            //CHECKING FOR ISSUANCE VALIDITY
+            if (parseFloat(totalIssuedQty) == 0) {
+                Swal.fire({
+                    title: 'Issuance Error',
+                    text: "You did not issue any quantity to this request.",
+                    icon: 'error',
+                    showCancelButton: false,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ok'
+                });
+            }
+            else if (parseFloat(totalIssuedQty) > parseFloat(requestedQuntity)) {
+                Swal.fire({
+                    title: 'Issuance Error',
+                    text: "The quantity you will issue is greater than the request quantity. Please change your issue quantity.",
+                    icon: 'error',
+                    showCancelButton: false,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ok'
+                });
+            }
+            else if (parseFloat(totalIssuedQty) < parseFloat(requestedQuntity)) {
+                Swal.fire({
+                    title: 'Are you sure you want to proceed?',
+                    text: "The quantity you will issue is less than the request quantity.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+
+                        //Start the loading annimation
+                        const div = document.createElement('div');
+                        const parentDiv = document.getElementById('ParentDiv');//Parent Div
+                        div.classList.add('overlay');
+                        div.id = 'myDiv';
+                        div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+                        parentDiv.appendChild(div);
+
+                        document.getElementById("IssueForm").submit();
+                    }
+                });
+            }
+            else {
+                Swal.fire({
+                    title: 'Are you sure you want to proceed?',
+                    text: "The quantity you will issue is equal to the request quantity.",
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+
+                        //Start the loading annimation
+                        const div = document.createElement('div');
+                        const parentDiv = document.getElementById('ParentDiv');//Parent Div
+                        div.classList.add('overlay');
+                        div.id = 'myDiv';
+                        div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+                        parentDiv.appendChild(div);
+
+                        document.getElementById("IssueForm").submit();
+                    }
+                });
+            }
+        }
+    </script>
+    @if (TempData["CostingError"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.success(@TempData["CostingError"].ToString());
+            });
+        </script>
+    }
+}

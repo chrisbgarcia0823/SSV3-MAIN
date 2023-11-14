@@ -1,0 +1,625 @@
+﻿@model IEnumerable<ShopSuppliesV3.ViewModel.Users>
+@using ShopSuppliesV3.ViewModel
+@using ShopSuppliesV3.Helpers
+
+@{
+    ViewData["Title"] = "Users List";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+@section Styles
+{
+    @*FOR ALERTS*@
+    <link href="~/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" />
+    <link href="~/plugins/toastr/toastr.min.css" rel="stylesheet" />
+
+    @*FOR DATATABLE*@
+    <link rel="stylesheet" href="~/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+}
+
+<div class="card card-outline card-danger">
+    <div class="card-header">
+        <h3>Users List</h3>
+        <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#modalAdd" id="showModalAdd">Add New User</button>
+        @*<a asp-action="Create" class="btn btn-primary">Add User</a>*@
+    </div>
+    <div class="card-body">
+        <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="table-responsive">
+                        <table id="users" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                            <thead>
+                                <tr>
+                                    <td>Id</td>
+                                    <td>Approver?</td>
+                                    <td>Username</td>
+                                    <td>Email Address</td>
+                                    <td>Name</td>
+                                    <td>Access Type</td>
+                                    <td>BU</td>
+                                    <td>Added By</td>
+                                    <td>Date Added</td>
+                                    <td></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>@item.Id</td>
+                                        <td>@item.isApprover</td>
+                                        <td>@item.UserName</td>
+                                        <td>@item.EmailAdd</td>
+                                        <td>@item.Name</td>
+                                        <td>@item.AccessType</td>
+                                        <td>@item.BUname</td>
+                                        <td>@item.addedBy</td>
+                                        <td>@item.DateAdded.ToString("g")</td>
+                                        <td class="text-center">
+                                            @if(item.isApprover == true)
+                                            {
+                                                
+                                            }
+                                            else
+                                            {
+                                                <div class="btn-group">
+                                                    <button class="btn btn-warning" id="showModalEdit" value="@item.Name" onclick="showEditModal(@item.Id, this.value)">Edit</button> &nbsp;
+                                                    <button class="btn btn-danger" id="showModalDelete" value="@item.Name" onclick="showDeleteModal(@item.Id, this.value)">Delete</button> &nbsp;
+                                                </div>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+@*MODAL FOR ADDING USERS*@
+<div id="modalAdd" class="modal fade" data-backdrop="static" data-keyboard="false" role="dialog">
+    <div class="modal-dialog">
+        <form asp-action="Create" method="post" id="CreateUserForm">
+            <div class="modal-content" id="UserModalAdd">
+                <div class="modal-header bg-success">
+                    <h3 id="header-title">Add New User</h3>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="isApprover" name="isApprover" onclick="checkApprover()">
+                            <label class="custom-control-label" for="isApprover">Toggle if user is an approver. </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="BUname">BU</label> <span class="text-danger">*</span>
+                        <select id="BUname" name="BUname" class="form-control" required>
+                            <option value="" selected disabled>Select BU</option>
+                            @foreach (var bu in ViewData["BU"] as List<string>)
+                            {
+                                <option value="@bu">@bu</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="Name">Name</label> <span class="text-danger">*</span>
+                        <input type="text" id="Name" name="Name" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="UserName">Username</label> <span class="text-danger">*</span>
+                        <input type="text" id="UserName" name="UserName" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="EmailAdd">Email Add</label> <span class="text-danger">*</span>
+                        <input type="email" id="EmailAdd" name="EmailAdd" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="AccessType">Access</label> <span class="text-danger">*</span>
+                        <select id="AccessType" name="AccessType" class="form-control" required>
+                            <option value="" disabled selected>Select Access Type</option>
+                            @foreach (var access in ViewData["Access"] as List<string>)
+                            {
+                                <option value="@access">@access</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col">
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </div>
+                    <div class="col text-right">
+                        <button type="button" data-dismiss="modal" class="btn btn-default">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@*MODAL FOR EDITING USERS*@
+<div id="modalEdit" class="modal fade" data-backdrop="static" data-keyboard="false" role="dialog">
+    <div class="modal-dialog">
+        <form asp-action="EditUser" method="post" id="EditUserForm">
+            <input type="hidden" id="EditUserId" name="EditUserId" />
+            <div class="modal-content" id="UserModalEdit">
+                <div class="modal-header bg-warning">
+                    <h3 id="EditUserTitle"></h3>
+                </div>
+                <div class="modal-body">
+                    <div class="callout callout-danger text-sm">
+                        <div class="row">
+                            <div class="col-md-11">
+                                <h6 class="font-weight-bold text-danger">Attention</h6>
+                                <div class="text-dark">
+                                    You cannot Edit User that have new, pending, and approved request.
+                                </div>
+                                <div class="text-dark">
+                                    This change may cause an error if not checked first.
+                                </div>
+                            </div>
+                            <div class="col-md-1 d-flex text-right">
+                                <h3 class="my-auto w-100 text-danger pr-2" style="opacity: 0.5;"><i class="fa fa-exclamation-triangle"></i></h3>
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="form-group">
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="isApproverEdit" name="isApproverEdit" onclick="checkApproverEdit()">
+                            <label class="custom-control-label" for="isApproverEdit">Toggle if user is an approver. </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="BUnameEdit">BU</label> <span class="text-danger">*</span>
+                        <select id="BUnameEdit" name="BUnameEdit" class="form-control" required>
+                            <option value="" selected disabled>Select BU</option>
+                            @foreach (var bu in ViewData["BU"] as List<string>)
+                            {
+                                <option value="@bu">@bu</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="NameEdit">Name</label> <span class="text-danger">*</span>
+                        <input type="text" id="NameEdit" name="NameEdit" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="UserNameEdit">Username</label> <span class="text-danger">*</span>
+                        <input type="text" id="UserNameEdit" name="UserNameEdit" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="EmailAddEdit">Email Add</label> <span class="text-danger">*</span>
+                        <input type="email" id="EmailAddEdit" name="EmailAddEdit" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="AccessTypeEdit">Access</label> <span class="text-danger">*</span>
+                        <select id="AccessTypeEdit" name="AccessTypeEdit" class="form-control" required>
+                            <option value="" disabled selected>Select Access Type</option>
+                            @foreach (var access in ViewData["Access"] as List<string>)
+                            {
+                                <option value="@access">@access</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col">
+                        <button type="submit" class="btn btn-primary">Edit</button>
+                    </div>
+                    <div class="col text-right">
+                        <button type="button" data-dismiss="modal" class="btn btn-default">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@*MODAL FOR DELETING USERS*@
+<div id="modalDelete" class="modal fade" data-backdrop="static" data-keyboard="false" role="dialog">
+    <div class="modal-dialog">
+        <form asp-action="DeleteUser" method="post" id="DeleteUserForm">
+            <input type="hidden" id="DeleteUserId" name="DeleteUserId" />
+            <input type="hidden" id="DeleteName" name="DeleteName" />
+            <div class="modal-content" id="UserModalDelete">
+                <div class="modal-header bg-danger">
+                    <h3 id="DeleteUserTitle"></h3>
+                </div>
+                <div class="modal-body">
+                    <div class="callout callout-danger text-sm">
+                        <div class="row">
+                            <div class="col-md-11">
+                                <h6 class="font-weight-bold text-danger">Attention</h6>
+                                <div class="text-dark">
+                                    You cannot Delete User that have new, pending, and approved request.
+                                </div>
+                                <div class="text-dark">
+                                    This change may cause an error if not checked first.
+                                </div>
+                            </div>
+                            <div class="col-md-1 d-flex text-right">
+                                <h3 class="my-auto w-100 text-danger pr-2" style="opacity: 0.5;"><i class="fa fa-exclamation-triangle"></i></h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col">
+                        <button type="submit" class="btn btn-danger">Ok</button>
+                    </div>
+                    <div class="col text-right">
+                        <button type="button" data-dismiss="modal" class="btn btn-default">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+@section Scripts {
+
+    @*FOR DATATABLE*@
+    <script src="~/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+    <script src="~/plugins/jszip/jszip.min.js"></script>
+    <script src="~/plugins/pdfmake/pdfmake.min.js"></script>
+    <script src="~/plugins/pdfmake/vfs_fonts.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+
+    <script>
+        $(function () {
+            $("#users").DataTable({
+                "order": [[0, 'desc']],
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "paging": false,
+                "info": true,
+                "paging": true,
+                "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+            }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+        });
+    </script>
+
+    @*CLEAR MODAL INPUT VALUES WHEN CLOSED*@
+    <script>
+        $('.modal').on('hidden.bs.modal', function () {
+            // Clear the value of all input and select elements in the modal
+            $(this).find('input').val('');
+        });
+    </script>
+
+    @*FOR CHECKING APPROVER IN ADDING NEW USER*@
+    <script>
+        function checkApprover() {
+            let approver = document.getElementById('isApprover');
+            let title = document.getElementById('header-title');
+            let access = document.getElementById('AccessType');
+            let option = document.createElement('option');
+            //let approverName = document.getElementById('Approver');
+            if (approver.checked == true) {
+                approver.value = true;
+                title.innerHTML = 'Add New Approver';
+                for (i = 0; i < access.options.length; i++) {
+                    if (access.options[i].value.toLowerCase() == 'buyer') {
+                        access.remove(i);
+                    }
+                }
+                access.value = "";
+                //approverName.disabled = true;
+                //approverName.required = false;
+            }
+            else {
+                approver.value = false;
+                title.innerHTML = 'Add New User';
+                option.text = "Buyer";
+                access.add(option);
+                access.value = "";
+                //approverName.disabled = false;
+                //approverName.required = true;
+            }
+        };
+    </script>
+
+    @*FOR CHECKING APPROVER IN EDITING USER*@
+    <script>
+        function checkApproverEdit() {
+            let approver = document.getElementById('isApproverEdit');
+            //let title = document.getElementById('header-title-Edit');
+            let access = document.getElementById('AccessTypeEdit');
+            let option = document.createElement('option');
+            //let approverName = document.getElementById('Approver');
+            if (approver.checked == true) {
+                approver.value = true;
+                //title.innerHTML = 'Add New Approver';
+                for (i = 0; i < access.options.length; i++) {
+                    if (access.options[i].value.toLowerCase() == 'buyer') {
+                        access.remove(i);
+                    }
+                }
+                access.value = "";
+                //approverName.disabled = true;
+                //approverName.required = false;
+            }
+            else {
+                approver.value = false;
+                //title.innerHTML = 'Add New User';
+                option.text = "Buyer";
+                access.add(option);
+                access.value = "";
+                //approverName.disabled = false;
+                //approverName.required = true;
+            }
+        };
+    </script>
+
+
+    @*ADD A SPINNING LOADING EFFECT WHEN CREATE FORM IS SUBMITTED*@
+    <script>
+        const formAdd = document.getElementById('CreateUserForm');
+        formAdd.addEventListener("submit", function (event) {
+            //Start the loading annimation
+            const div = document.createElement('div');
+            const UserModalAdd = document.getElementById('UserModalAdd');//Parent Div
+            div.classList.add('overlay');
+            div.id = 'myDiv';
+            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+            UserModalAdd.appendChild(div);
+        }
+        );
+    </script>
+
+    @*OPEN EDIT USER MODAL AND PASS USER ID AND NAME*@
+    <script>
+        async function showEditModal(userId, nameEdit) 
+        {
+            //SHOW THE DELETE MODAL
+            $('#modalEdit').modal('show');
+
+            //For UserId to be Edited
+            const EditUserId = document.getElementById('EditUserId');
+            EditUserId.value = userId;
+
+            //For Modal Header
+            const EditUserTitle = document.getElementById('EditUserTitle');
+            EditUserTitle.innerHTML = "Edit " + nameEdit + "?";
+
+            //AllInputs
+            const approver = document.getElementById('isApproverEdit');
+            const buName = document.getElementById('BUnameEdit');
+            const name = document.getElementById('NameEdit');
+            const userName = document.getElementById('UserNameEdit');
+            const emailAdd = document.getElementById('EmailAddEdit');
+            const accessType = document.getElementById('AccessTypeEdit');
+            const errorUrl = `@Url.Action("EditUserError", "Errors")`;
+
+            //Start the loading annimation while fetching the data
+            const div = document.createElement('div');
+            const UserModalAdd = document.getElementById('UserModalEdit');//Parent Div
+            div.classList.add('overlay');
+            div.id = 'myDiv';
+            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+            UserModalAdd.appendChild(div);
+
+            // Get the information of the selected item from the controller
+            const userData = await fetch(`@Url.Action("GetUserInfo", "Users")/${userId}`);
+            if (userData.status === 200) //Data is fectched
+            {
+                const userDataJson = await userData.json(); //convert to jason file
+                //console.log(userDataJson);
+                //access the values and put in the modal elements
+                if (userDataJson.isApprover == true) 
+                {
+                    approver.checked = true;
+                }
+                else 
+                {
+                    approver.checked = false;
+                }
+                buName.value = userDataJson.bUname;
+                name.value = userDataJson.name;
+                userName.value = userDataJson.userName;
+                emailAdd.value = userDataJson.emailAdd;
+                accessType.value = userDataJson.accessType;
+                
+                //Remove the SPINNING LOADING EFFECT WHEN ALL DATA IS LOADED
+                const div = document.getElementById('myDiv');
+                div.remove();
+            }
+            else
+            {
+                window.location.href = errorUrl;
+            }
+        }
+    </script>
+
+    @*ADD A SPINNING LOADING EFFECT WHEN EDIT FORM IS SUBMITTED*@
+    <script>
+        const formEdit = document.getElementById('EditUserForm');
+        formEdit.addEventListener("submit", function (event) {
+            //Start the loading annimation
+            const div = document.createElement('div');
+            const UserModalEdit = document.getElementById('UserModalEdit');//Parent Div
+            div.classList.add('overlay');
+            div.id = 'myDiv';
+            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+            UserModalEdit.appendChild(div);
+        }
+        );
+    </script>
+
+
+    @*OPEN DELETE USER MODAL AND PASS USER ID AND NAME*@
+    <script>
+        function showDeleteModal(userId, userName) {
+            //SHOW THE DELETE MODAL
+            $('#modalDelete').modal('show');
+
+            //Access Id
+            const DeleteUserId = document.getElementById('DeleteUserId');
+            DeleteUserId.value = userId;
+
+            //Access Name
+            const DeleteName = document.getElementById('DeleteName');
+            DeleteName.value = userName;
+
+            //Warning title
+            const modalHeader = document.getElementById('DeleteUserTitle');
+            modalHeader.innerHTML = "Are you sure you want to delete user " + userName + "?";
+        }
+    </script>
+
+    @*ADD A SPINNING LOADING EFFECT WHEN DELETE FORM IS SUBMITTED*@
+    <script>
+        const formDelete = document.getElementById('DeleteUserForm');
+        formDelete.addEventListener("submit", function (event) {
+            //Start the loading annimation
+            const div = document.createElement('div');
+            const UserModalDelete = document.getElementById('UserModalDelete');//Parent Div
+            div.classList.add('overlay');
+            div.id = 'myDiv';
+            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+            UserModalDelete.appendChild(div);
+        }
+        );
+    </script>
+
+    @*FOR ALERTS*@
+    <script src="~/plugins/sweetalert2/sweetalert2.min.js"></script>
+    <script src="~/plugins/toastr/toastr.min.js"></script>
+    @if (TempData["UsersAddedSuccess"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.success("@TempData["UsersAddedSuccess"] Successfully Added")
+            });
+        </script>
+    }
+
+    @if (TempData["UserAlreadyExist"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.warning("User @TempData["UserAlreadyExist"] Aready Exist.")
+            });
+        </script>
+    }
+
+    @if (TempData["UserEditError"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.error("User @TempData["UserEditError"] has pending request. Please double check first.")
+            });
+        </script>
+    }
+
+    @if (TempData["UserNotExistError"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.error("User @TempData["UserNotExistError"] does not exist.")
+            });
+        </script>
+    }
+
+    @if (TempData["UserDeleteError"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.error("User @TempData["UserDeleteError"] has pending request. Please double check first.")
+            });
+        </script>
+    }
+
+    @*USING FETCH API*@
+   @* <script>
+        const itemSelect = document.querySelector("select[name='item']");
+        const itemInfoDiv = document.querySelector("#item-info");
+
+        itemSelect.addEventListener("change", async function () {
+            const item = itemSelect.value;
+
+            // Get the information of the selected item from the controller
+            const itemData = await fetch(`@Url.Action("api", "Users")/${item}`);
+
+            // If the request is successful, display the information of the selected item in the view
+            if (itemData.status === 200) {
+                const itemDataJson = await itemData.json();
+
+                const unitOfMeasure = itemDataJson[0].unitOfMeasure;
+                const safetyStocks = itemDataJson[0].safetyStocks;
+                const description = itemDataJson[0].description;
+
+                // Display the item information
+                itemInfoDiv.innerHTML = `
+                      <p>Unit of measure: ${unitOfMeasure}</p>
+                      <p>Safety stocks: ${safetyStocks}</p>
+                      <p>Description: ${description}</p>
+                    `;
+            } else {
+                // Handle the error
+            }
+        });
+    </script>*@
+
+
+
+    }

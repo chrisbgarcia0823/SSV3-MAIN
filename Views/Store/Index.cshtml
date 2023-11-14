@@ -1,0 +1,193 @@
+﻿@*USE THIS FOR PAGINATED LIST*@
+@model PaginatedList<ShopSuppliesV3.ViewModel.Store>
+
+@using ShopSuppliesV3.Models
+@using ShopSuppliesV3.Helpers
+
+@{
+    ViewData["Title"] = "Inventory Item List";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+@section Styles
+    {
+    <style>
+        .card-store {
+            border-color: transparent;
+            border-width: 1px;
+        }
+
+            .card-store:hover {
+                border-color: orange;
+                border-width: 1px;
+            }
+        /*        .card:hover .card-footer {
+                                    display: block;
+                                }*/
+    </style>
+
+
+    @*    <script>
+        //ADJUST THIS FOR THE REFRESH
+        function autoRefresh() {
+            window.location = window.location.href;
+        };
+        setInterval('autoRefresh()', 5000);
+    </script>*@
+
+
+    @*FOR ALERTS*@
+    <link href="~/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" />
+    <link href="~/plugins/toastr/toastr.min.css" rel="stylesheet" />
+}
+
+
+<div class="row">
+    <div class="col-lg-12 col-md-12 col-sm-12">
+        <div id="store" name="store" class="row">
+            <div>
+                <a class="btn">
+                    <div class="card card-success" style="width:20rem">
+                        <div class="card-header">
+                            <h3 class="card-title">Filter</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form asp-action="Index" method="get">
+                                <div class="form-group row">
+                                    <div class="col">
+                                        <select class="form-control" id="searchOption" name="searchOption" required>
+                                            <option value="" disabled selected>Select Filter Option</option>
+                                            <option value="itemNumber">By Item Number</option>
+                                            <option value="itemDescription">By Item Description</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col text-left">
+                                        <input type="text" class="form-control" placeholder="Type your keywords here" id="searchString" name="searchString" required>
+                                        <small class="text-muted">Enter Search Key Word</small>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col text-left">
+                                        <button type="submit" class="btn btn-primary">Search</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            @foreach (var item in Model)
+            {
+                <div>
+                    <a class="btn" href="@Url.Action("Create","Requests", new{inventoryId = item.Id, itemId = item.ItemId, itemNumber=item.ItemNumber, remainingStocksToRequest = item.RemainingStocksToRequest , description=item.Description, unitOfMeasure=item.UnitOfMeasure, requestorUserName = User.Identity.Name.Substring(5), buName=item.ItemBU})">
+                        <div class="card card-store" id="@item.Id" style="width:20rem">
+                            <div class="card-header @StoreIndicatorHelpers.ColorRowBasedOnStocks(item.RemainingStocksToRequest, item.SafetyStock)">
+                                <h5 id="@item.ItemNumber">@item.ItemNumber</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text text-dark">@item.Description</p>
+                                <p class="card-text text-dark">Remaining Stocks: <strong class="text-primary">@item.RemainingStocksToRequest @item.UnitOfMeasure</strong></p>
+                                <p class="card-text text-muted"><small>Supplier: @item.Supplier</small></p>
+                            </div>
+
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 text-center">
+        @*FOR PAGINATED PAGE*@
+        @{
+            var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+            var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+        }
+
+        <a asp-action="Index"
+           asp-route-searchString=@TempData["SearchString"]
+           asp-route-pageNumber="@(Model.PageIndex - 1)"
+           asp-route-searchOption=@TempData["SearchOption"]
+           class="btn btn-default @prevDisabled">
+            Previous
+        </a>
+        <a asp-action="Index"
+           asp-route-searchString=@TempData["SearchString"]
+           asp-route-pageNumber="@(Model.PageIndex + 1)"
+           asp-route-searchOption=@TempData["SearchOption"]
+           class="btn btn-default @nextDisabled">
+            Next
+        </a>
+    </div>
+    <div class="col-12 text-center mt-3">
+        <p>@TempData["PageNumber"] / @TempData["TotalPage"] Page</p>
+    </div>
+</div>
+
+
+
+
+
+
+@section Scripts {
+
+
+    @*AUTO REFRESH*@
+    <script type="text/javascript">
+        var idleTime = 0;
+        $(document).ready(function () {
+            // Increment the idle time counter every minute.
+            var idleInterval = setInterval(timerIncrement, 60000); // 1 minute
+
+            // Zero the idle timer on mouse movement.
+            $(this).mousemove(function (e) {
+                idleTime = 0;
+            });
+            $(this).keypress(function (e) {
+                idleTime = 0;
+            });
+        });
+
+        function timerIncrement() {
+            idleTime = idleTime + 1;
+            if (idleTime > 1) { // in minutes
+                window.location.reload();
+            }
+        }
+    </script>
+
+
+    @*FOR ALERTS*@
+    <script src="~/plugins/sweetalert2/sweetalert2.min.js"></script>
+    <script src="~/plugins/toastr/toastr.min.js"></script>
+    @if (TempData["ItemNameRequestSuccess"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.success("Item Request Successfully")
+            });
+        </script>
+    }
+}

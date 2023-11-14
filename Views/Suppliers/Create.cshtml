@@ -1,0 +1,30 @@
+﻿@{
+    ViewData["Title"] = "Create New Supplier";
+    Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+}
+
+<div class="card card-outline card-danger mx-auto" style="width:30rem">
+    <div class="card-header">
+        <h3>Add New Supplier</h3>
+    </div>
+    <form asp-action="Create" method="post">
+        <div class="card-body">
+            <div class="form-group row">
+                <div class="col">
+                    <label for="SupplierName">Supplier Name</label>
+                    <input type="text" id="SupplierName" name="SupplierName" class="form-control" required />
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="row">
+                <div class="col">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+                <div class="col text-right">
+                    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

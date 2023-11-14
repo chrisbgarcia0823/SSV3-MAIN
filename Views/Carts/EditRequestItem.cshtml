@@ -1,0 +1,141 @@
+﻿@using ShopSuppliesV3.Helpers
+@model ShopSuppliesV3.ViewModel.Requests
+
+@{
+    ViewData["Title"] = "Edit Order";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+@section Styles
+    {
+    @*FOR ALERTS*@
+    <link href="~/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" />
+    <link href="~/plugins/toastr/toastr.min.css" rel="stylesheet" />
+}
+
+<form asp-action="EditRequestItem" method="post" id="EditRequestForm">
+    <input type="hidden" asp-for="Id" value="@Model.Id" />
+    <input type="hidden" asp-for="ItemId" value="@Model.ItemId" />
+    <div id="modal-request" class="modal fade" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content" id="EditRequestModal">
+                <div class="modal-header">
+                    <div class="small-box bg-warning col-12">
+                        <div class="inner">
+                            <h3>Edit - @Model.ItemNumber</h3>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <p class="small-box-footer>More info">@Model.RequestorName, do you want to edit this request item?</p>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <div class="col">
+                            <label>Request Category</label><span class="text-danger">*</span>
+                            <select asp-for="RequestCategory" class="form-control" required>
+                                <option value="@Model.RequestCategory" selected>@Model.RequestCategory</option>
+                                @foreach (var category in ViewData["RequestCategory"] as List<string>)
+                                {
+                                    if(category.ToLower() != Model.RequestCategory.ToLower())
+                                    {
+                                        <option value="@category">@category</option>
+                                    }     
+                                }
+                            </select>
+
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col">
+                            <label>Area of Used</label><span class="text-danger">*</span>
+                            <select asp-for="AreaName" class="form-control" required>
+                                <option value="@Model.AreaName" selected>@Model.AreaName</option>
+                                @foreach (var area in ViewData["Areas"] as List<string>)
+                                {
+                                    if(area.ToLower() != Model.AreaName.ToLower())
+                                    {
+                                        <option value="@area">@area</option>
+                                    }                
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col">
+                            <label>Quantity Requested</label><span class="text-danger">*</span>
+                            <input type="number" min="0" step="0.1" max="@Model.RemainingQuntityToRequest" class="form-control" asp-for="QuantityRequested" value="@Model.QuantityRequested" required />
+                            <span class="text-muted"></>Remaining Stocks: @Model.RemainingQuntityToRequest @Model.UnitOfMeasure</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col">
+                            <label>Purpose</label><span class="text-danger">*</span>
+                            <input type="text" class="form-control" asp-for="Purpose" value="@Model.Purpose" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col">
+                        <button type="submit" class="btn btn-primary">Ok</button>
+                    </div>
+                    <div class="col text-right">
+                        <a href="@Url.Action("Index")" class="btn btn-default">Back</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+
+
+@section Scripts {
+
+    @*FOR ALERTS*@
+    <script src="~/plugins/sweetalert2/sweetalert2.min.js"></script>
+    <script src="~/plugins/toastr/toastr.min.js"></script>
+    @if (TempData["RequestError"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.danger("Item Request Error")
+            });
+        </script>
+    }
+
+    <script>
+        $(window).on('load', function () {
+            $('#modal-request').modal('show');
+        });
+    </script>
+
+    @*ADD A SPINNING LOADING EFFECT WHEN CREATE FORM IS SUBMITTED*@
+    <script>
+        const form = document.getElementById('EditRequestForm');
+        form.addEventListener("submit", function (event) {
+            //Start the loading annimation
+            const div = document.createElement('div');
+            const parentDiv = document.getElementById('EditRequestModal');//Parent Div
+            div.classList.add('overlay');
+            div.id = 'myDiv';
+            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+            parentDiv.appendChild(div);
+        });
+    </script>
+}

@@ -1,0 +1,187 @@
+﻿@model IEnumerable<ShopSuppliesV3.ViewModel.Store>
+@using ShopSuppliesV3.Helpers
+@{
+    ViewData["Title"] = "Inventory List";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+@section Styles
+    {
+    @*FOR ALERTS*@
+    <link href="~/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" />
+    <link href="~/plugins/toastr/toastr.min.css" rel="stylesheet" />
+
+    @*FOR DATATABLE*@
+    <link rel="stylesheet" href="~/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+}
+
+
+<div class="card card-outline card-danger">
+    <div class="card-header">
+        <h3>Inventory List</h3>
+    </div>
+    <div class="card-body">
+        <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="table-responsive">
+                        <table id="inventory" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                            <thead>
+                                <tr class="text-uppercase">
+                                    <td>Id</td>
+                                    <td>BU</td>
+                                    <td>Item #</td>
+                                    <td>Description</td>
+                                    <td>Stocks Issued</td>
+                                    <td>In Request Stocks</td>
+                                    <td>Remaining Stocks To Request</td>
+                                    <td>On Hold Stocks</td>
+                                    <td>On Hand Stocks</td>
+                                    <td>Safety Stocks</td>
+                                    <td>Adjustment</td>
+                                    <td></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr class="@StoreIndicatorHelpers.ColorRowBasedOnStocks(item.RemainingStocksToRequest, item.SafetyStock)">
+                                        <td>@item.InventoryId</td>
+                                        <td>@item.ItemBU</td>
+                                        <td>@item.ItemNumber</td>
+                                        <td>@item.Description</td>
+                                        <td>@item.OutgoingStocks</td>
+                                        <td>@item.InRequestStocks</td>
+                                        <td>@item.RemainingStocksToRequest</td>
+                                        <td>@item.TotalOnHoldQuantity</td>
+                                        <td>@item.RemainingStocksOnHand</td>
+                                        <td>@item.SafetyStock</td>
+                                        <td>@item.Adjustment</td>
+                                        <td>
+                                            <button class="btn btn-light" type="button" value="@item.ItemNumber" onclick="openModal(@item.InventoryId, this.value)">Adjust</button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*MODAL FOR THE ADJUSTMENT*@
+<div id="modal-adjust" class="modal fade" data-backdrop="static" data-keyboard="false" role="dialog">
+    <form asp-action="AdjustInventory" asp-controller="Inventory" method="post">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h3 id="modalH1"></h3>
+                    <input type="hidden" id="InventoryId" name="InventoryId" />
+                    <input type="hidden" id="ItemNumber" name="ItemNumber" />
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <label for="Adjustment">Input Adjustment</label> <span class="text-danger">*</span>
+                        <input type="number" class="form-control" id="Adjustment" name="Adjustment" required />
+                        <span class="text-muted">Input can can be a positive or negative number</span>
+                    </div>
+                    <div class="form-group row">
+                        <label for="Adjustment">Remarks</label> <span class="text-danger">*</span>
+                        <input type="text" class="form-control" id="Remarks" name="Remarks" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col">
+                        <button type="submit" class="btn btn-primary">Proceed</button>
+                    </div>
+                    <div class="col text-right">
+                        <button type="button" data-dismiss="modal" class="btn btn-default">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts
+{
+    @*FOR DATATABLE*@
+    <script src="~/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+    <script src="~/plugins/jszip/jszip.min.js"></script>
+    <script src="~/plugins/pdfmake/pdfmake.min.js"></script>
+    <script src="~/plugins/pdfmake/vfs_fonts.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+
+    <script>
+        $(function () {
+            $("#inventory").DataTable({
+                "order": [[0, 'desc']],
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "paging": false,
+                "info": true,
+                "paging": true,
+                "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+            }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+        });
+    </script>
+
+    @*OPEN MODAL PASSING THE VALUES*@
+    <script>
+        function openModal(inventoryId, itemNumber) {
+            const InventoryId = document.getElementById('InventoryId');
+            let modalItem = document.getElementById('modalH1');
+            InventoryId.value = inventoryId;
+            ItemNumber.value = inventoryId;
+            modalItem.innerHTML = "Make adjustment for " + itemNumber;
+            $('#modal-adjust').modal('show');
+        }
+    </script>
+
+    @*CLEAR MODAL INPUT VALUES WHEN CLOSED*@
+    <script>
+        $('#modal-adjust').on('hidden.bs.modal', function () {
+            // Clear the value of all input and select elements in the modal
+            $(this).find('input').val('');
+        });
+    </script>
+
+    @*FOR ALERTS*@
+    <script src="~/plugins/sweetalert2/sweetalert2.min.js"></script>
+    <script src="~/plugins/toastr/toastr.min.js"></script>
+
+    @*ALERT FOR SUCCESSFULL ADDING*@
+    @if (TempData["ItemNumber"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.success("Inventory itm #-@TempData["ItemNumber"] successfully adjusted.")
+            });
+        </script>
+    }
+}

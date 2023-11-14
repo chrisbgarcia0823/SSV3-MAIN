@@ -1,0 +1,358 @@
+﻿@using ShopSuppliesV3.Helpers;
+
+<!-- Main Sidebar Container -->
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <!-- Brand Logo -->
+    <a href="#" class="brand-link">
+        <img src="~/img/logo.png" alt="SSV3 Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+        <span class="brand-text font-weight-light">Shop Supplies V3</span>
+    </a>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <!-- Sidebar user panel (optional) -->
+@*        <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+            <div class="image">
+                <img src="dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+            </div>
+            <div class="info">
+                <a href="#" class="d-block">Alexander Pierce</a>
+            </div>
+        </div>*@
+
+        <!-- SidebarSearch Form -->
+@*        <div class="form-inline">
+            <div class="input-group" data-widget="sidebar-search">
+                <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search">
+                <div class="input-group-append">
+                    <button class="btn btn-sidebar">
+                        <i class="fas fa-search fa-fw"></i>
+                    </button>
+                </div>
+            </div>
+        </div>*@
+
+        <!-- Sidebar Menu -->
+        <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                <!-- Add icons to the links using the .nav-icon class
+                     with font-awesome or any other icon font library -->
+@*                <li class="nav-item menu-open">
+                    <a href="#" class="nav-link active">
+                        <i class="nav-icon fas fa-tachometer-alt"></i>
+                        <p>
+                            Starter Pages
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link active">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Active Page</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Inactive Page</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>*@
+                @if(LayoutSelector.AccessType(User.Identity.Name.Substring(5)) == "admin")
+                {
+                    <li class="nav-item">
+                        <a href="#" class="nav-link @Url.MakeActiveClass("Approvals")">
+                            <i class="nav-icon fas fa-thumbs-up"></i>
+                            <p>
+                                Approvals
+                                <i class="right fas fa-angle-left"></i>
+                                <span class="badge badge-danger right">@MainNavNotif.ApprovalNotification(User.Identity.Name.Substring(5))</span>
+
+                          </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="@Url.Action("Index", "Approvals")" class="nav-link nav-link @Url.MakeActiveClass("Approvals")">
+                                    <i class="nav-icon fas fa-check"></i>
+                                    <p>
+                                        For Approvals
+                                        <span class="right badge badge-danger">@MainNavNotif.ApprovalsCount(User.Identity.Name.Substring(5))</span>
+                                    </p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="@Url.Action("ApprovalHistory", "Approvals")" class="nav-link nav-link @Url.MakeActiveClass("Approvals", "ApprovalHistory")">
+                                    <i class="nav-icon far fa-calendar"></i>
+                                    <p> Approvals History</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("MyRequest", "Requests")" class="nav-link nav-link @Url.MakeActiveClass("Requests")">
+                            <i class="nav-icon fas fa-list"></i>
+                            <p>
+                                My Requests
+                                <span class="right badge badge-danger">@MainNavNotif.RequestStatus(User.Identity.Name.Substring(5))</span>
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "Carts")" class="nav-link nav-link @Url.MakeActiveClass("Carts")">
+                            <i class="nav-icon fas fa-shopping-cart"></i>
+                            <p>
+                                Cart Items
+                                <span class="right badge badge-danger">@MainNavNotif.CartItemCount(User.Identity.Name.Substring(5))</span>
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "Store")" class="nav-link nav-link @Url.MakeActiveClass("Store")">
+                            <i class="nav-icon fas fa-store"></i>
+                            <p>
+                                Store
+                                @*<span class="right badge badge-danger">New</span>*@
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link @Url.MakeActiveClass("Inventory")">
+                            <i class="nav-icon fas fa-warehouse"></i>
+                            <p>
+                                Inventory Menu
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="@Url.Action("Index", "Inventory")" class="nav-link nav-link @Url.MakeActiveClass("Inventory", "Index")">
+                                    <i class="nav-icon fas fa-list-ol"></i>
+                                    <p> Inventory List</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="@Url.Action("InventoryAdjustment", "Inventory")" class="nav-link nav-link @Url.MakeActiveClass("Inventory", "InventoryAdjustment")">
+                                    <i class="nav-icon far fa-calendar"></i>
+                                    <p> Adjustment History</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="@Url.Action("SearchInventory", "Inventory")" class="nav-link @Url.MakeActiveClass("Inventory", "SearchInventory")">
+                                    <i class="nav-icon fas fa-search"></i>
+                                    <p> Search Inventory</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link @Url.MakeActiveClass("Incommings")">
+                            <i class="nav-icon fas fa-box-open"></i>
+                            <p>
+                                Incomings Menu
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="@Url.Action("EditIncoming", "Incommings")" class="nav-link @Url.MakeActiveClass("Incommings", "EditIncoming")">
+                                    <i class="nav-icon fas fa-search"></i>
+                                    <p> Search Incoming</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="@Url.Action("Index", "Incommings")" class="nav-link @Url.MakeActiveClass("Incommings", "Index")">
+                                    <i class="nav-icon fas fa-list-ol"></i>
+                                    <p> Incoming Item List</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="@Url.Action("Create", "Incommings")" class="nav-link @Url.MakeActiveClass("Incommings", "Create")">
+                                    <i class="nav-icon fas fa-plus"></i>
+                                    <p> Add Incoming Item</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="@Url.Action("PullHistory", "Incommings")" class="nav-link nav-link @Url.MakeActiveClass("Incommings", "PullHistory")">
+                                    <i class="nav-icon far fa-calendar"></i>
+                                    <p>Pull History</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "Issuance")" class="nav-link nav-link @Url.MakeActiveClass("Issuance")">
+                            <i class="nav-icon fas fa-hand-holding"></i>
+                            <p>
+                                Issuance
+                                <span class="right badge badge-danger">@MainNavNotif.IssuanceCount()</span>
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "Outgoing")" class="nav-link nav-link @Url.MakeActiveClass("Outgoing")">
+                            <i class="nav-icon fas fa-table"></i>
+                            <p>
+                                Kardex
+                                @*<span class="right badge badge-danger">New</span>*@
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link @Url.MakeActiveClass("Items")">
+                            <i class="nav-icon fas fa-boxes"></i>
+                            <p>
+                                Items Menu
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="@Url.Action("Index", "Items")" class="nav-link @Url.MakeActiveClass("Items", "Index")">
+                                    <i class="nav-icon fas fa-list-ol"></i>
+                                    <p> Item List</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="@Url.Action("Create", "Items")" class="nav-link @Url.MakeActiveClass("Items", "Create")">
+                                    <i class="nav-icon fas fas fa-plus"></i>
+                                    <p> Add Item</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "Users")" class="nav-link @Url.MakeActiveClass("Users")">
+                            <i class="nav-icon fas fa-user"></i>
+                            <p>
+                                Users
+                                @*<span class="right badge badge-danger">New</span>*@
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "BU")" class="nav-link nav-link @Url.MakeActiveClass("BU")">
+                            <i class="nav-icon fas fa-sitemap"></i>
+                            <p>
+                                BU
+                                @*<span class="right badge badge-danger">New</span>*@
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "UM")" class="nav-link nav-link @Url.MakeActiveClass("UM")">
+                            <i class="nav-icon fas fa-ruler"></i>
+                            <p>
+                                Unit of Measure
+                                @*<span class="right badge badge-danger">New</span>*@
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "AccessTypes")" class="nav-link nav-link @Url.MakeActiveClass("AccessTypes")">
+                            <i class="nav-icon fas fa-key"></i>
+                            <p>
+                                Access Types
+                                @*<span class="right badge badge-danger">New</span>*@
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "Category")" class="nav-link nav-link @Url.MakeActiveClass("Category")">
+                            <i class="nav-icon fas fa-layer-group"></i>
+                            <p>
+                                Request Category
+                                @*<span class="right badge badge-danger">New</span>*@
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "Area")" class="nav-link nav-link @Url.MakeActiveClass("Area")">
+                            <i class="nav-icon far fa-compass"></i>
+                            <p>
+                                Area
+                                @*<span class="right badge badge-danger">New</span>*@
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "Suppliers")" class="nav-link nav-link @Url.MakeActiveClass("Suppliers")">
+                            <i class="nav-icon fas fa-shopping-bag"></i>
+                            <p>
+                                Supplier
+                                @*<span class="right badge badge-danger">New</span>*@
+                            </p>
+                        </a>
+                    </li>
+                }
+                else if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)) == "approver")
+                {
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "Approvals")" class="nav-link nav-link @Url.MakeActiveClass("Approvals")">
+                            <i class="nav-icon fas fa-thumbs-up"></i>
+                            <p>
+                                Approvals
+                                <span class="right badge badge-danger">@MainNavNotif.ApprovalsCount(User.Identity.Name.Substring(5))</span>
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("MyRequest", "Requests")" class="nav-link nav-link @Url.MakeActiveClass("Requests")">
+                            <i class="nav-icon fas fa-list"></i>
+                            <p>
+                                My Requests
+                                <span class="right badge badge-danger">@MainNavNotif.RequestStatus(User.Identity.Name.Substring(5))</span>
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "Carts")" class="nav-link nav-link @Url.MakeActiveClass("Carts")">
+                            <i class="nav-icon fas fa-shopping-cart"></i>
+                            <p>
+                                Cart Items
+                                <span class="right badge badge-danger">@MainNavNotif.CartItemCount(User.Identity.Name.Substring(5))</span>
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "Store")" class="nav-link nav-link @Url.MakeActiveClass("Store")">
+                            <i class="nav-icon fas fa-store"></i>
+                            <p>
+                                Store
+                                @*<span class="right badge badge-danger">New</span>*@
+                            </p>
+                        </a>
+                    </li>
+                }
+
+                @*<li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-file"></i>
+                        <p>
+                            PR Form
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-clipboard-check"></i>
+                        <p>
+                            PO Management
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-upload"></i>
+                        <p>
+                            Upload Changes
+                        </p>
+                    </a>
+                </li>*@
+            </ul>
+        </nav>
+        <!-- /.sidebar-menu -->
+    </div>
+    <!-- /.sidebar -->
+</aside>

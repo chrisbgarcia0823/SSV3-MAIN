@@ -1,0 +1,179 @@
+﻿@model IEnumerable<ShopSuppliesV3.ViewModel.Requests>
+@using ShopSuppliesV3.Helpers
+@using ShopSuppliesV3.ViewModel
+
+@{
+    ViewData["Title"] = "Request Detail";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+@section Styles
+    {
+    <link rel="stylesheet" href="~/css/MyRequest.css" />
+    <link href="~/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" />
+    <link href="~/plugins/toastr/toastr.min.css" rel="stylesheet" />
+
+    @*FOR DATATABLE*@
+    <link rel="stylesheet" href="~/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+}
+
+<div class="card card-solid">
+    <div class="card-header small-box bg-warning rounded-0 mb-0">
+            <div class="inner">
+                <h3>Order Details</h3>
+            </div>
+            <div class="icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+    </div>
+    <div class="card-body mt-0">
+        <div class="row">
+            <div class="col-12 col-sm-6 col-md-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-info elevation-1"><i class="fas fa-user"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Requestor</span>
+                        <span class="info-box-text"><strong>@Model.FirstOrDefault().RequestorName</strong></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-3">
+                <div class="info-box mb-3">
+                    <span class="info-box-icon bg-danger elevation-1"><i class="fas fa-sitemap"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">BU</span>
+                        <span class="info-box-text"><strong>@Model.FirstOrDefault().BUname</strong></span>
+                    </div>
+                </div>
+            </div>
+            <div class="clearfix hidden-md-up"></div>
+            <div class="col-12 col-sm-6 col-md-3">
+                <div class="info-box mb-3">
+                    <span class="info-box-icon bg-success elevation-1"><i class="fas fa-thumbs-up"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Approver Name</span>
+                        <span class="info-box-text"><strong>@Model.FirstOrDefault().ApproverName</strong></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-3">
+                <div class="info-box mb-3">
+                    <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-cart-arrow-down"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Item in Cart</span>
+                        <span class="info-box-text"><strong>@Model.Count()</strong></span>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+        <hr />
+        @*DATATABLE*@
+        <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="table-responsive">
+                        <table id="requestDetail" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                            <thead>
+                                <tr>
+                                    <td>Order Number</td>
+                                    <td>Area</td>
+                                    <td>Item Requested</td>
+                                    <td>Description</td>
+                                    <td>Quantity Requested</td>
+                                    <td>Unit of Measure</td>
+                                    <td>Purpose</td>
+                                    <td>Date Requested</td>
+                                    <td>Action</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var request in Model)
+                                {
+                                    <tr>
+                                        <td>@request.OrderNumber</td>
+                                        <td>@request.AreaName</td>
+                                        <td>@request.ItemNumber</td>
+                                        <td>@request.ItemDescription</td>
+                                        <td>@request.QuantityRequested</td>
+                                        <td>@request.UnitOfMeasure</td>
+                                        <td>@request.Purpose</td>
+                                        <td>@request.DateRequested.ToString("MMM-dd-yyyy")</td>
+                                        <td>
+                                            <a asp-action="IssueRequestedItem" asp-controller="Outgoing" asp-route-requestId="@request.Id" class="btn @RequestIndicatorHelpers.DisableBtnBasedOnApproval(request.RequestStatus)">Issue Item</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <a asp-action="Index" class="btn btn-secondary">Back To Request List</a>
+    </div>
+</div>
+
+
+@section Scripts
+{
+    @*FOR ALERTS*@
+    <script src="~/plugins/toastr/toastr.min.js"></script>
+    <script src="~/plugins/sweetalert2/sweetalert2.min.js"></script>
+    @if (TempData["ItemIssuedSuccess"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.success("Order Number @TempData["ItemIssuedSuccess"] issued successfully.")
+            });
+        </script>
+    }
+
+
+
+    @*FOR DATATABLE*@
+    <script src="~/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+    <script src="~/plugins/jszip/jszip.min.js"></script>
+    <script src="~/plugins/pdfmake/pdfmake.min.js"></script>
+    <script src="~/plugins/pdfmake/vfs_fonts.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+
+    <script>
+        $(function () {
+            $("#requestDetail").DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "paging": false,
+                "info": true,
+                "paging": true,
+                "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+            }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+        });
+    </script>
+}

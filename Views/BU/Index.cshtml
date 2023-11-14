@@ -1,0 +1,511 @@
+﻿@model IEnumerable<ShopSuppliesV3.ViewModel.BU>
+@using ShopSuppliesV3.Helpers
+
+@{
+    ViewData["Title"] = "BU List";
+
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+@section Styles
+    {
+    @*FOR ALERTS*@
+    <link href="~/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" />
+    <link href="~/plugins/toastr/toastr.min.css" rel="stylesheet" />
+
+    @*FOR DATATABLE*@
+    <link rel="stylesheet" href="~/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+}
+
+<div class="card card-outline card-danger">
+    <div class="card-header">
+        <h3>BU List</h3>
+        <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#modalAdd" id="showModalAdd">Add BU</button>
+    </div>
+    <div class="card-body">
+        <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="table-responsive">
+                        <table id="bu" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                            <thead>
+                                <tr>
+                                    <td>Id</td>
+                                    <td>BU</td>
+                                    <td>Added By</td>
+                                    <td>Date Added</td>
+                                    <td></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var bu in Model)
+                                {
+                                    <tr>
+                                        <td>@bu.Id</td>
+                                        <td class="text-uppercase">@bu.BUname</td>
+                                        <td>@bu.AddedByName</td>
+                                        <td>@bu.DateAdded.ToString("g")</td>
+                                        <td class="text-center">
+                                            <div class="btn-group">
+                                                <button class="btn btn-warning" id="showModalEdit" value="@bu.BUname" onclick="showEditModal(@bu.Id, this.value)">Edit</button> &nbsp;
+                                                <button class="btn btn-danger" id="showModalDelete" value="@bu.BUname" onclick="showDeleteModal(@bu.Id, this.value)">Delete</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@*MODAL FOR ADDING BU*@
+<div id="modalAdd" class="modal fade" data-backdrop="static" data-keyboard="false" role="dialog">
+    <div class="modal-dialog">
+        <form asp-action="CreateBu" id="CreateBuForm" method="post">
+            <div class="modal-content" id="BuModalAdd">
+                <div class="modal-header bg-success">
+                    <h3>Add New BU</h3>
+                </div>
+                <div class="modal-body">
+
+                    <div class="form-group row">
+                        <label for="BuName">BU</label> <span class="text-danger">*</span>
+                        <input type="text" class="form-control" id="BuName" name="BuName" />
+                        <span id="BuNameSpan" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col">
+                        <button type="button" class="btn btn-primary" onclick="addNewBu()">Add BU</button>
+                    </div>
+                    <div class="col text-right">
+                        <button type="button" data-dismiss="modal" class="btn btn-default">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@*MODAL FOR EDITING BU*@
+<div id="modalEdit" class="modal fade" data-backdrop="static" data-keyboard="false" role="dialog">
+    <div class="modal-dialog">
+        <form asp-action="EditBu" id="EditBuForm" method="post">
+            <input type="hidden" id="EditBuId" name="EditBuId" />
+            <input type="hidden" id="OldBuName" name="OldBuName" />
+            <div class="modal-content" id="BuModalEdit">
+                <div class="modal-header bg-warning">
+                    <h3 id="EditBuTitle"></h3>
+                </div>
+                <div class="modal-body">
+                    <div class="callout callout-danger text-sm">
+                        <div class="row">
+                            <div class="col-md-11">
+                                <h6 class="font-weight-bold text-danger">Attention</h6>
+                                <div class="text-dark">
+                                    You cannot edit BU that are already used in the previous item/user creation.
+                                </div>
+                            </div>
+                            <div class="col-md-1 d-flex text-right">
+                                <h3 class="my-auto w-100 text-danger pr-2" style="opacity: 0.5;"><i class="fa fa-exclamation-triangle"></i></h3>
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="form-group row">
+                        <label for="NewBuName">Edit BU</label> <span class="text-danger">*</span>
+                        <input type="text" class="form-control" id="NewBuName" name="NewBuName" />
+                        <span id="BuNameSpanEdit" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col">
+                        <button type="button" class="btn btn-primary" onclick="editConfirm()">Ok</button>
+                    </div>
+                    <div class="col text-right">
+                        <button type="button" data-dismiss="modal" class="btn btn-default">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@*MODAL FOR THE DELETE*@
+<div id="modalDelete" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <form asp-action="DeleteBu" id="DeleteBuForm" method="post">
+            <input type="hidden" id="BuId" name="BuId" />
+            <input type="hidden" id="DeleteBuName" name="DeleteBuName" />
+            <div class="modal-content" id="BuModalDelete">
+                <div class="modal-header bg-danger">
+                    <h3 id="modalDeleteTitle"></h3>
+                </div>
+                <div class="modal-body">
+                    <div class="callout callout-danger text-sm">
+                        <div class="row">
+                            <div class="col-md-11">
+                                <h6 class="font-weight-bold text-danger">Attention</h6>
+                                <div class="text-dark">
+                                    You cannot delete BU that are already used in the previous item/user creation.
+                                </div>
+                                <div class="text-dark">
+                                    Please use this to delete eronous entry only.
+                                </div>
+                            </div>
+                            <div class="col-md-1 d-flex text-right">
+                                <h3 class="my-auto w-100 text-danger pr-2" style="opacity: 0.5;"><i class="fa fa-exclamation-triangle"></i></h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col">
+                        <button type="button" class="btn btn-danger" onclick="deleteConfirm()">Yes</button>
+                    </div>
+                    <div class="col text-right">
+                        <button type="button" data-dismiss="modal" class="btn btn-default">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts
+{
+    @*FOR DATATABLE*@
+    <script src="~/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+    <script src="~/plugins/jszip/jszip.min.js"></script>
+    <script src="~/plugins/pdfmake/pdfmake.min.js"></script>
+    <script src="~/plugins/pdfmake/vfs_fonts.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+
+    <script>
+        $(function () {
+            $("#bu").DataTable({
+                "order": [[0, 'desc']],
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "paging": false,
+                "info": true,
+                "paging": true,
+                "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+            }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+        });
+    </script>
+
+
+    @*CLEAR MODAL INPUT VALUES WHEN CLOSED*@
+    <script>
+        $('.modal').on('hidden.bs.modal', function () {
+            // Clear the value of all input and select elements in the modal
+            $(this).find('input').val('');
+        });
+    </script>
+
+    @*OPEN modalAdd FOR ADDING A NEW BU*@
+    <script>
+        function openModal() {
+            $('#modalAdd').modal('show');
+        }
+    </script>
+
+    @*ADD NEW BU*@
+    <script>
+        function addNewBu() {
+            //FORM NAME TO BE SUBMITTED
+            const form = document.getElementById('CreateBuForm');
+
+            //Input Name to be checked
+            const inputName = document.getElementById('BuName');
+
+            //Span element for data validation
+            const BuNameSpan = document.getElementById('BuNameSpan')
+
+            //Check if there are any name input
+            if (inputName.value == '') {
+                BuNameSpan.innerHTML = "Please enter BU";
+            }
+            else {
+                BuNameSpan.innerHTML = "";
+
+                //ADD A SPINNING LOADING EFFECT
+                const div = document.createElement('div');
+                const BuModalAdd = document.getElementById('BuModalAdd');
+                div.classList.add('overlay');
+                div.id = 'myDiv';
+                div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+                BuModalAdd.appendChild(div);
+
+                //Submit the form with the buName
+                form.submit();
+            }
+        }
+    </script>
+
+    @*OPEN DELETE BU MODAL AND PASS BU ID AND NAME*@
+    <script>
+        function showDeleteModal(buId, buName) {
+            //SHOW THE DELETE MODAL
+            $('#modalDelete').modal('show');
+
+            //Bu Id
+            const BuId = document.getElementById('BuId');
+            BuId.value = buId;
+
+            //Bu Name
+            const DeleteBuName = document.getElementById('DeleteBuName');
+            DeleteBuName.value = buName;
+
+            //Warning title
+            const modalHeader = document.getElementById('modalDeleteTitle');
+            modalHeader.innerHTML = "Are you sure you want to delete " + buName + "?";
+        }
+    </script>
+    @*DELETE THE BU*@
+    <script>
+        function deleteConfirm() {
+            //FORM NAME TO BE SUBMITTED
+            const form = document.getElementById('DeleteBuForm');
+            //Bu Id
+            const BuId = document.getElementById('BuId');
+            //Bu Name
+            const DeleteBuName = document.getElementById('DeleteBuName');
+
+            //ADD A SPINNING LOADING EFFECT
+            const div = document.createElement('div');
+            const BuModalDelete = document.getElementById('BuModalDelete');
+            div.classList.add('overlay');
+            div.id = 'myDiv';
+            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+            BuModalDelete.appendChild(div);
+
+            //Submit the form with the buName
+            form.submit();
+        }
+    </script>
+
+    @*OPEN EDIT BU MODAL AND PASS BU ID AND NAME*@
+    <script>
+        function showEditModal(buId, buName) {
+            //SHOW THE DELETE MODAL
+            $('#modalEdit').modal('show');
+
+            //Bu Id
+            const EditBuId = document.getElementById('EditBuId');
+            EditBuId.value = buId;
+
+            //Bu Name
+            const OldBuName = document.getElementById('OldBuName');
+            OldBuName.value = buName;
+
+            //Warning title
+            const EditBuTitle = document.getElementById('EditBuTitle');
+            EditBuitle.innerHTML = "Edit " + buName + "?";
+        }
+    </script>
+    @*EDIT THE BU*@
+    <script>
+        function editConfirm() {
+            //FORM NAME TO BE SUBMITTED
+            const form = document.getElementById('EditBuForm');
+            //Bu Id
+            const EditBuId = document.getElementById('EditBuId');
+            //Old Bu Name
+            const OldBuName = document.getElementById('OldBuName');
+            //New Bu Name
+            const NewBuName = document.getElementById('NewBuName');
+            //Input Span for DataValidation
+            const BuNameSpanEdit = document.getElementById('BuNameSpanEdit');
+
+            if (NewBuName.value == '') {
+                BuNameSpanEdit.innerHTML = 'Please input a new BU';
+            }
+            else if (OldBuName.value.toLowerCase() == NewBuName.value.toLowerCase()) {
+                BuNameSpanEdit.innerHTML = 'New BU is the same as the old BU';
+            }
+            else {
+                BuNameSpanEdit.innerHTML = "";
+
+                //ADD A SPINNING LOADING EFFECT
+                const div = document.createElement('div');
+                const BuModalEdit = document.getElementById('BuModalEdit');
+                div.classList.add('overlay');
+                div.id = 'myDiv';
+                div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+                BuModalEdit.appendChild(div);
+
+                //Submit the form with the buName
+                form.submit();
+            }
+        }
+    </script>
+
+
+    @*FOR ALERTS*@
+    <script src="~/plugins/sweetalert2/sweetalert2.min.js"></script>
+    <script src="~/plugins/toastr/toastr.min.js"></script>
+
+    @*ALERT FOR SUCCESSFULL ADDING*@
+    @if (TempData["BuAddSuccess"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.success("BU @TempData["BuAddSuccess"] successfully Added.")
+            });
+        </script>
+    }
+
+    @*ALERT IF BU ALREADY EXIST*@
+    @if (TempData["BuExist"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.error("BU @TempData["BuExist"] already exist.")
+            });
+        </script>
+    }
+
+    @*ALERT IF BU IS DELETED SUCCESSFULLY*@
+    @if (TempData["DeleteSuccess"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.success("BU @TempData["DeleteSuccess"] successfully deleted.")
+            });
+        </script>
+    }
+    @*ALERT IF BU IS ACTIVE AND USED IN REQUEST CREATION*@
+    @if (TempData["DeleteWarning"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.error("BU @TempData["DeleteWarning"] is used in an active Item/User and cannot be deleted.")
+            });
+        </script>
+    }
+    @*ALERT IF BU DOES NOT EXIST*@
+    @if (TempData["DeleteError"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.error("BU @TempData["DeleteError"] does not exist.")
+            });
+        </script>
+    }
+    @*ALERT IF BU IS EDITED SUCCESSFULLY*@
+    @if (TempData["EditSuccess"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.success("BU @TempData["EditSuccess"] was successfully change to @TempData["EditSuccessNewName"].")
+            });
+        </script>
+    }
+    @*ALERT IF BU EDIT IS ACTIVE AND USED IN REQUEST CREATION*@
+    @if (TempData["EditWarning"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.error("BU @TempData["EditWarning"] is used in an active Item/User and cannot be edited.")
+            });
+        </script>
+    }
+    @*ALERT IF BU NEW NAME EXIST*@
+    @if (TempData["EditWarningDuplicate"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.warning("BU @TempData["EditWarningDuplicate"] already exist in the database.")
+            });
+        </script>
+    }
+    @*ALERT IF BU DOES NOT EXIST*@
+    @if (TempData["EditError"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.error("BU @TempData["EditError"] does not exist.")
+            });
+        </script>
+    }
+
+}

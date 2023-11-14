@@ -1,0 +1,526 @@
+﻿@model IEnumerable<ShopSuppliesV3.ViewModel.Requests>
+@using ShopSuppliesV3.Helpers
+
+@{
+    ViewData["Title"] = "My Cart";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "admin")
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+
+}
+
+@section Styles
+{
+     @*FOR DATATABLE*@
+    <link rel="stylesheet" href="~/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+
+    @*FOR ALERTS*@
+    <link href="~/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" />
+    <link href="~/plugins/toastr/toastr.min.css" rel="stylesheet" />
+}
+
+<form asp-action="CheckOut" method="post" id="checkoutForm">
+    <div class="card card-outline card-danger">
+        <div class="card-header">
+            @*<h1>My Cart</h1>*@
+            <h1>My Cart</h1>
+            <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="selectAllBtn" name="selectAllBtn" onclick="selectAll()">
+                <label class="custom-control-label" for="selectAllBtn">Toggle To Select All Order</label>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="table-responsive">
+                            <table id="myCart" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                                <thead>
+                                    <tr>
+                                        <td>BU</td>
+                                        <td>Order Number</td>
+                                        <td>Category</td>
+                                        <td>Item Number</td>
+                                        <td>Description</td>
+                                        <td>Quantity Requested</td>
+                                        <td>Unit of Measure</td>
+                                        <td>Status</td>
+                                        <td class="text-center">Include in Checkout</td>
+                                        <td>Modify Order</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var requests in Model)
+                                    {
+                                        
+                                        <tr>
+                                            <td>@requests.BUname</td>
+                                            <td>@requests.OrderNumber</td>
+                                            <td>@requests.RequestCategory</td>
+                                            <td>@requests.ItemNumber</td>
+                                            <td>@requests.ItemDescription</td>
+                                            <td>@requests.QuantityRequested</td>
+                                            <td>@requests.UnitOfMeasure</td>
+                                            <td>@requests.RequestStatus</td>
+                                            <td class="text-center">
+
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="@requests.Id" name="selectItem" onclick="selectedItem(this.id)">
+                                                    <label class="form-check-label" for="@requests.Id">
+                                                        &nbsp;
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="btn-group">
+                                                    <a asp-action="EditRequestItem" asp-route-requestId="@requests.Id" class="btn btn-primary" id="edit-@requests.Id" name="editBtn" title="Edit Order"><i class="fas fa-pen"></i></a>&nbsp;
+                                                    <button type="button" class="btn btn-danger delete-button" id="cancel-@requests.Id" name="cancelBtn" value="@requests.ItemNumber" onclick="deleteItemRequest(@requests.Id)"><i class="fas fa-trash"></i></button>
+                                                    <input type="hidden" name="orderIdAll" id="input-@requests.Id" value="@requests.Id">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="card-footer">
+            <div class="row">
+                <div class="col">
+                    <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#modal-approver" id="submitBtn">Submit Request</button>
+                </div>
+                <div action="col text-right">
+                    <a asp-action="Index" asp-controller="Store" class="btn btn-secondary">Back To Store</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @*MODAL FOR THE REQUESTOR*@
+    <div id="modal-approver" class="modal fade" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content" id="checkOutModal">
+                @*                <div class="modal-header">
+                <div class="blockquote text-center">
+                <p class="text-danger mb-0">Cut-off time for your orders are every 2:00 PM</p>
+                <p class="text-danger mb-0">Advance orders expires every 2 days and non advance every 1 day.</p>
+                </div>
+                </div>*@
+                <div class="modal-body">
+                    <div class="callout callout-danger text-sm">
+                        <div class="row">
+                            <div class="col-md-11">
+                                <h6 class="font-weight-bold text-danger">Attention</h6>
+                                <div class="text-dark">
+                                    Cut-off time for your orders are every 2:00 PM.
+                                </div>
+                                <div class="text-dark">
+                                    Advance orders expires every 2 days and non advance every 1 day.
+                                </div>
+                                <div class="text-dark">
+                                    All items not included in checkout will be deleted from your cart.
+                                </div>
+                            </div>
+                            <div class="col-md-1 d-flex text-right">
+                                <h3 class="my-auto w-100 text-danger pr-2" style="opacity: 0.5;"><i class="fa fa-exclamation-triangle"></i></h3>
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
+                    <h3>Select Approver</h3>
+                    <hr />
+                    <div class="form-group row">
+                        <label for="Approver">Select Approver</label> <span class="text-danger">*</span>
+                        <select id="Approver" name="Approver" class="form-control" required>
+                            <option value="" disabled selected>Select Approver</option>
+                            @foreach (var approver in ViewData["Approvers"] as List<SSv3_GAL_USERTBL>)
+                            {
+                                <option value="@approver.Id">@approver.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="IsAdvance" name="IsAdvance" value="1" />
+                            <label class="custom-control-label" for="IsAdvance">Toggle for advance order. </label>
+                        </div>
+                    </div>
+                    @*                <div class="form-group row">
+                    <label for="IsAdvance">Advance Order?</label> <span class="text-danger">*</span>
+                    <select id="IsAdvance" name="IsAdvance" class="form-control" required>
+                    <option value="" disabled selected>Is This An Advance Order?</option>
+                    <option value="0">NO</option>
+                    <option value="0">YES</option>
+                    </select>
+                    </div>*@
+                </div>
+                <div class="modal-footer">
+                    <div class="col">
+                        <button type="button" class="btn btn-primary" onclick="validateOrder()">Proceed</button>
+                    </div>
+                    <div class="col text-right">
+                        <button type="button" data-dismiss="modal" class="btn btn-default">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@*MODAL FOR THE REMOVE ITEM*@
+<div id="modalDelete" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <input type="hidden" id="RequestItemId" name="RequestItemId" />
+        <div class="modal-content" id="CartModalDelete">
+            <div class="modal-header bg-danger">
+                <h3 id="modalDeleteTitle"></h3>
+            </div>
+            <div class="modal-body">
+                <div class="callout callout-danger text-sm">
+                    <div class="row">
+                        <div class="col-md-11">
+                            <h6 class="font-weight-bold text-danger">Attention</h6>
+                            <div class="text-dark">
+                                Are you sure you want to remove this item?
+                            </div>
+                        </div>
+                        <div class="col-md-1 d-flex text-right">
+                            <h3 class="my-auto w-100 text-danger pr-2" style="opacity: 0.5;"><i class="fa fa-exclamation-triangle"></i></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col">
+                    <button type="button" class="btn btn-danger" id="ConfirmBtn" onclick="confirmedDelete()">Yes</button>
+                </div>
+                <div class="col text-right">
+                    <button type="button" data-dismiss="modal" class="btn btn-default">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    @*FOR DATATABLE*@
+    <script src="~/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+    <script src="~/plugins/jszip/jszip.min.js"></script>
+    <script src="~/plugins/pdfmake/pdfmake.min.js"></script>
+    <script src="~/plugins/pdfmake/vfs_fonts.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+
+    <script>
+        $(function () {
+            $("#myCart").DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "paging": false,
+                "info": true,
+                "paging": true,
+                "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+            }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+        });
+    </script>
+
+
+    @*DELETE CODE WHEN BUTTON IS CLICKED*@
+    <script>
+        function deleteItemRequest(requestItemId) {
+            const RequestItemIdModal = document.getElementById('RequestItemId');
+            RequestItemIdModal.value = requestItemId;
+            $('#modalDelete').modal('show');
+        }
+    </script>
+    <script>
+            async function confirmedDelete() {
+            const RequestItemId = document.getElementById('RequestItemId');
+            const requestItemId = RequestItemId.value;
+            var row = $('.delete-button').closest('tr');//get the row that was closest to the delete-button class that was clicked
+            //var row = deleteItem(itemId);
+            var table = $('#myCart').DataTable();
+
+            //Start the loading annimation
+            const div = document.createElement('div');
+            const CartModalDelete = document.getElementById('CartModalDelete');//Parent Div
+            div.classList.add('overlay');
+            div.id = 'myDiv';
+            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+            CartModalDelete.appendChild(div);
+
+            //FOR ALERT
+            var Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            });
+
+            //Perform delete item using fetch API
+            const deleteIncoming = await fetch(`@Url.Action("DeleteRequestItem", "Carts")/${requestItemId}`)
+            {
+                if (deleteIncoming.status === 200) //delete is performed
+                {
+                    const results = await deleteIncoming.text(); //convert to string/text
+
+                    //Hide the Modal Delete
+                    $('#modalDelete').modal('hide');
+
+                    if (results == "Delete Success") {
+                        //Remove the SPINNING LOADING EFFECT WHEN ALL DATA IS LOADED
+                        const div = document.getElementById('myDiv');
+                        div.remove();
+
+                        //Delete the item row in the data table
+                        table.row(row).remove().draw()
+
+                        //Add alert for the success delete (visual confirmation)
+                        return toastr.success("Item remove successfully");
+
+                    }
+                    else if (results == "Delete Error") {
+
+                        //Remove the SPINNING LOADING EFFECT WHEN ALL DATA IS LOADED
+                        const div = document.getElementById('myDiv');
+                        div.remove();
+
+                        //Add alert for the error on delete (visual confirmation)
+                        return toastr.error("Item removal error");
+                    }
+                    else {
+                        //Remove the SPINNING LOADING EFFECT WHEN ALL DATA IS LOADED
+                        const div = document.getElementById('myDiv');
+                        div.remove();
+
+                        //Add alert for the error on delete (visual confirmation)
+                        return toastr.error("Unauthorized User")
+                    }
+
+                }
+                else {
+                    //Remove the SPINNING LOADING EFFECT WHEN ALL DATA IS LOADED
+                    const div = document.getElementById('myDiv');
+                    div.remove();
+
+                    //Hide the Modal Delete
+                    $('#modalDelete').modal('hide');
+
+                    //Add alert for the error on delete (visual confirmation)
+                    return toastr.error("Item removal error. Please contact your app developer.");
+                }
+            }
+        }
+    </script>
+
+
+    @*FOR ALERTS*@
+    <script src="~/plugins/toastr/toastr.min.js"></script>
+    <script src="~/plugins/sweetalert2/sweetalert2.min.js"></script>
+
+    <script>
+        function selectedItem(elementId) {
+            let checkElement = document.getElementById(elementId);
+            let editElement = document.getElementById('edit-' + elementId);
+            let cancelElement = document.getElementById('cancel-' + elementId);
+            //let orderIdInput = document.getElementById('input-' + elementId);
+            if (checkElement.checked === true) {
+                editElement.classList.add('disabled');
+                cancelElement.classList.add('disabled');
+                //orderIdInput.value = elementId;
+                checkElement.value = elementId;
+            }
+            else {
+                editElement.classList.remove('disabled');
+                cancelElement.classList.remove('disabled');
+                //orderIdInput.value = "";
+
+            }
+        };
+    </script>
+
+    @*FOR CHECKBOX AND TOGGLE BUTTON*@
+    <script>
+        function selectAll() {
+            let selectAllBtn = document.getElementById('selectAllBtn');
+            let checkBoxs = document.getElementsByName('selectItem');
+            let editBtns = document.getElementsByName('editBtn');
+            let cancelBtns = document.getElementsByName('cancelBtn');
+            if (selectAllBtn.checked === true) {
+                for (i = 0; i < checkBoxs.length; i++) {
+                    checkBoxs[i].checked = true;
+                    editBtns[i].classList.add('disabled');
+                    cancelBtns[i].classList.add('disabled');
+                }
+            }
+            else {
+                for (i = 0; i < checkBoxs.length; i++) {
+                    checkBoxs[i].checked = false;
+                    editBtns[i].classList.remove('disabled');
+                    cancelBtns[i].classList.remove('disabled');
+                }
+            }
+        };
+    </script>
+
+    <script>
+        //CHECKING IF CHECKOUT VALIDITY
+        function validateOrder() {
+            let checkBoxs = document.getElementsByName('selectItem');
+            let approver = document.getElementById('Approver');
+            let checkBoxCount = 0;
+            for (i = 0; i < checkBoxs.length; i++) {
+                if (checkBoxs[i].checked == true) {
+                    checkBoxCount++
+                }
+            }
+            if (approver.value == '') {
+                Swal.fire({
+                    title: 'Issuance Error',
+                    text: "You did not select an approver",
+                    icon: 'error',
+                    showCancelButton: false,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ok'
+                });
+            }
+            else {
+                if (parseInt(checkBoxCount) == 0) {
+                    Swal.fire({
+                        title: 'Issuance Error',
+                        text: "You did not select item to checkout",
+                        icon: 'error',
+                        showCancelButton: false,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Ok'
+                    });
+                }
+                else if (parseInt(checkBoxCount) < checkBoxs.length && parseInt(checkBoxCount) > 0) {
+                    Swal.fire({
+                        title: 'Are you sure you want to checkout?',
+                        text: "You did not select all the item in your cart. All items that are not included will be deleted from your cart.",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            //ADD A SPINNING LOADING EFFECT
+                            const div = document.createElement('div');
+                            const checkOutModal = document.getElementById('checkOutModal');
+                            div.classList.add('overlay');
+                            div.id = 'myDiv';
+                            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+                            checkOutModal.appendChild(div);
+                            document.getElementById("checkoutForm").submit();
+                        }
+                    });
+                }
+                else if (parseInt(checkBoxCount) == checkBoxs.length) {
+                    Swal.fire({
+                        title: 'Are you sure you want to checkout?',
+                        text: "You selected all the item in your cart",
+                        icon: 'success',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            //ADD A SPINNING LOADING EFFECT
+                            const div = document.createElement('div');
+                            const myCartCard = document.getElementById('checkOutModal');
+                            div.classList.add('overlay');
+                            div.id = 'myDiv';
+                            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+                            checkOutModal.appendChild(div);
+
+                            document.getElementById("checkoutForm").submit();
+                        }
+                    });
+                }
+            }
+        }
+    </script>
+
+    @if (TempData["CheckoutSuccess"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.success("Order Successfully Checkout");
+            });
+        </script>
+    }
+
+    <script>
+        function checkTable() {
+            let tbl = document.getElementById('myCart');
+            let selectAllBtn = document.getElementById('selectAllBtn');
+            let submitBtn = document.getElementById('submitBtn');
+            if (tbl.rows.length == 1) {
+                selectAllBtn.setAttribute('disabled', '');
+                submitBtn.setAttribute('disabled', '');
+                alert('You have no item in your cart');
+            }
+        };
+        window.onload = checkTable;
+    </script>
+
+    @if (TempData["ZeroRequest"] != null)
+        {
+            <script>
+                $(function () {
+                    var Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                    toastr.error("You do not have any request. Check out your item first or order from store.")
+                });
+            </script>
+        }
+
+    @if (TempData["ItemDoesNotExist"] != null)
+    {
+        <script>
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.error("The item you want to delete does not exist.")
+            });
+        </script>
+    }
+}

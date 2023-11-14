@@ -1,0 +1,33 @@
+﻿@model IEnumerable<ShopSuppliesV3.ViewModel.Cart>
+
+@{
+    ViewData["Title"] = "Request Lists";
+    Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+}
+
+
+
+<div class="card card-outline card-danger">
+    <div class="card-header">
+        <h3>Test</h3>
+    </div>
+    <div class="card-body table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <td>User Id</td>
+                    <td>Number or Orders</td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.RequestorUserId</td>
+                        <td>@item.CountItemRequested</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

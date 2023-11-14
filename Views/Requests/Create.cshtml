@@ -1,0 +1,138 @@
+﻿@using ShopSuppliesV3.Helpers
+
+@{
+    ViewData["Title"] = "Request Item";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+@section Styles
+    {
+    @*FOR ALERTS*@
+    <link href="~/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" />
+    <link href="~/plugins/toastr/toastr.min.css" rel="stylesheet" />
+}
+
+<form asp-action="Create" method="post" id="CreateRequestForm">
+    <input type="hidden" value="@TempData["ItemNumber"]" name="ItemNumber" id="ItemNumber" />
+    <input type="hidden" value="@TempData["InventoryId"]" name="InventoryId" id="InventoryId" />
+    <input type="hidden" value="@TempData["InventyoryItemId"]" name="InventyoryItemId" id="InventyoryItemId" />
+    <input type="hidden" value="@TempData["BUname"]" name="BUname" id="BUname" />
+    <input type="hidden" value="@TempData["UnitOfMeasure"]" id="UnitOfMeasure" name="UnitOfMeasure" />
+    <input type="hidden" value="@User.Identity.Name.Substring(5)" name="RequestorUserName" id="RequestorUserName" />
+    <div id="modal-request" class="modal fade" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content" id="CreateRequestModal">
+                <div class="modal-header">
+                    <div class="small-box bg-info col-12">
+                        <div class="inner">
+                            <h3>@TempData["ItemNumber"]</h3>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <p class="small-box-footer>More info">@TempData["RequestorName"], do you want to request this item?</p>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <div class="col">
+                            <label>Request Category</label><span class="text-danger">*</span>
+                            <select id="RequestCategory" name="RequestCategory" class="form-control" required>
+                                <option value="" selected disabled>Select Request Category</option>
+                                @foreach(var category in ViewData["RequestCategory"] as List<string>)
+                                {
+                                    <option value="@category">@category</option>
+                                }
+                            </select>
+
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col">
+                            <label>Area of Used</label><span class="text-danger">*</span>
+                            <select name="AreaName" id="AreaName" class="form-control" required>
+                                <option value="" selected disabled>Select Area</option>
+                                @foreach (var area in ViewData["Areas"] as List<string>)
+                                {
+                                    <option value="@area">@area</option>
+                                }
+                            </select>    
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col">
+                            <label>Quantity Requested</label><span class="text-danger">*</span>
+                            <input type="number" min="0" step="0.1" max="@TempData["RemainingStocksToRequest"]" class="form-control" name="QuantityRequested" id="QuantityRequested" required />
+                            <span class="text-muted"></>Remaining Stocks: @TempData["RemainingStocksToRequest"] @TempData["UnitOfMeasure"]</span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col">
+                            <label>Purpose</label><span class="text-danger">*</span>
+                            <input type="text" class="form-control" name="Purpose" id="Purpose" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col">
+                        <button type="submit" class="btn btn-primary">Add To Cart</button>
+                    </div>
+                    <div class="col text-right">
+                        <a href="@Url.Action("Index","Store")" class="btn btn-default">Back To Store</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+
+
+@section Scripts {
+
+    @*FOR ALERTS*@
+    <script src="~/plugins/sweetalert2/sweetalert2.min.js"></script>
+    <script src="~/plugins/toastr/toastr.min.js"></script>
+    @if (TempData["RequestError"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.danger("Item Request Error")
+            });
+        </script>
+    }
+
+    <script>
+        $(window).on('load', function () {
+            $('#modal-request').modal('show');
+        });
+    </script>
+
+    @*ADD A SPINNING LOADING EFFECT WHEN CREATE FORM IS SUBMITTED*@
+    <script>
+        const formCreate = document.getElementById('CreateRequestForm');
+        formCreate.addEventListener("submit", function (event) {
+            //Start the loading annimation
+            const div = document.createElement('div');
+            const parentDiv = document.getElementById('CreateRequestModal');//Parent Div
+            div.classList.add('overlay');
+            div.id = 'myDiv';
+            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+            parentDiv.appendChild(div);
+        });
+    </script>
+}

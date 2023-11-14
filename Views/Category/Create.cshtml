@@ -1,0 +1,30 @@
+﻿@model ShopSuppliesV3.Models.SSv3_ITEM_CATEGORYTBL
+
+@{
+    ViewData["Title"] = "Create New Category";
+    Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+}
+
+<form asp-action="Create" method="post">
+    <div class="card card-outline card-danger mx-auto" style="width:30rem">
+        <div class="card-header">
+            <h3>Create New Category</h3>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label for="CategoryName">Category</label>
+                <input asp-for="CategoryName" class="form-control" required />
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="row">
+                <div class="col">
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </div>
+                <div class="col text-right">
+                    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,529 @@
+﻿@using ShopSuppliesV3.ViewModel
+@using ShopSuppliesV3.Helpers
+
+@{
+    ViewData["Title"] = "Home Page";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+
+}
+
+@section Styles 
+{
+
+    @*FOR ALERTS*@
+    <link href="~/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" />
+    <link href="~/plugins/toastr/toastr.min.css" rel="stylesheet" />
+
+    @*FOR DATATABLE*@
+    <link rel="stylesheet" href="~/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+}
+
+
+<h3>Request Status</h3>
+<div class="row">
+    @*TOTAL CURRENT REQUEST COUNT*@
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="info-box mb-3">
+            <span class="info-box-icon bg-success elevation-1"><i class="fas fa-shopping-cart"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">New Requests</span>
+                <span class="info-box-number">@TempData["NewRequestCount"]</span>
+            </div>
+        </div>
+    </div>
+
+    @*TOTAL PENDING REQUEST COUNT*@
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="info-box mb-3">
+            <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-sync-alt"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Pending Request</span>
+                <span class="info-box-number">@TempData["PendingRequestCount"]</span>
+            </div>
+
+        </div>
+    </div>
+
+    @*TOTAL APPROVE REQUEST COUNT*@
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="info-box mb-3">
+            <span class="info-box-icon bg-danger elevation-1"><i class="fas fa-thumbs-up"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Approved Request</span>
+                <span class="info-box-number">@TempData["ApprovedRequestCount"]</span>
+            </div>
+
+        </div>
+    </div>
+
+    @*TOTAL REQUEST ISSUED*@
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="info-box">
+            <span class="info-box-icon bg-info elevation-1"><i class="fas fa-check"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Issued Items</span>
+                <span class="info-box-number">@TempData["IssuedRequestCount"]</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr />
+<h3 class="mt-5">Items Below Safety Stocks</h3>
+<div class="card card-danger">
+    <div class="card-header">
+        <h3 class="card-title">ITEM LIST</h3>
+        <div class="card-tools">
+            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                <i class="fas fa-minus"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="chart">
+            <div class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand"><div class=""></div></div><div class="chartjs-size-monitor-shrink"><div class=""></div></div></div>
+            <canvas id="barChart-BelowSafety" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 1084px;" width="1084" height="250" class="chartjs-render-monitor"></canvas>
+        </div>
+    </div>
+</div>
+
+<hr />
+
+<h3 class="mt-5">Items Near Expiration Date</h3>
+<div class="card card-warning">
+    <div class="card-header">
+        <h3 class="card-title">ITEM LIST</h3>
+        <div class="card-tools">
+            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                <i class="fas fa-minus"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="table-responsive">
+                        <table id="example" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Expiration Date</th>
+                                    <th>Quantity</th>
+                                    <th>Item Number</th>
+                                    <th>Date Added</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in ViewData["ItemsNearExpiration"] as List<Incommings>)
+                                {
+                                    <tr>
+                                        <td>@item.Id</td>
+                                        <td>@item.ExpirationDate?.ToString("g")</td>
+                                        <td>@item.Quantity</td>
+                                        <td>@item.ItemNumber</td>
+                                        <td>@item.DateAdded.ToString("g")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr />
+
+
+<div class="row mt-5">
+    <div class="col-6">
+        <h3>Items On Hold</h3>
+        <div class="card card-danger">
+            <div class="card-header">
+                <h3 class="card-title">ITEM LIST</h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand"><div class=""></div></div><div class="chartjs-size-monitor-shrink"><div class=""></div></div></div>
+                <canvas id="pieChart-HoldItems" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 1084px;" width="1084" height="250" class="chartjs-render-monitor"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-6">
+        <h3>Top 10 Requested Items</h3>
+        <div class="card card-success">
+            <div class="card-header">
+                <h3 class="card-title">ITEM LIST</h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand"><div class=""></div></div><div class="chartjs-size-monitor-shrink"><div class=""></div></div></div>
+                <canvas id="pieChart-TopRequest" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 1084px;" width="1084" height="250" class="chartjs-render-monitor"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+@section Scripts
+{
+    @*SAMPLE CODE*@
+    @*USING FETCH API*@
+    @* <script>
+        const itemSelect = document.querySelector("select[name='item']");
+        const itemInfoDiv = document.querySelector("#item-info");
+
+        itemSelect.addEventListener("change", async function () {
+            const item = itemSelect.value;
+
+            // Get the information of the selected item from the controller
+            const itemData = await fetch(`@Url.Action("api", "Users")/${item}`);
+
+            // If the request is successful, display the information of the selected item in the view
+            if (itemData.status === 200) {
+                const itemDataJson = await itemData.json();
+
+                const unitOfMeasure = itemDataJson[0].unitOfMeasure;
+                const safetyStocks = itemDataJson[0].safetyStocks;
+                const description = itemDataJson[0].description;
+
+                // Display the item information
+                itemInfoDiv.innerHTML = `
+                      <p>Unit of measure: ${unitOfMeasure}</p>
+                      <p>Safety stocks: ${safetyStocks}</p>
+                      <p>Description: ${description}</p>
+                    `;
+            } else {
+                // Handle the error
+            }
+        });
+    </script>*@
+    @*END SAMPLE CODE*@
+
+    @*FOR ALERTS*@
+    <script src="~/plugins/sweetalert2/sweetalert2.min.js"></script>
+    <script src="~/plugins/toastr/toastr.min.js"></script>
+
+    @*FOR CHART JS*@
+    <script src="~/plugins/chart.js/Chart.min.js"></script>
+
+    @*ITEMS BELOW SAFETY STOCKS*@
+    <script>
+        $(async function () {
+            //FOR ALERT
+            var Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            });
+            
+            //URL ACTION OF THE METHOD TO ACCESS
+            const apiUrl = '@Url.Action("SafetyStocks", "Home")';
+            // Get the information of the selected item from the controller
+            const Data = await fetch(apiUrl);
+            let itemNumbers = [];
+            let remainingStocks = [];
+            let safetyStocks = [];
+
+            if(Data.status === 200) //status success
+            {
+                const jsonData = await Data.json();
+                //console.log(jsonData);
+                //get the labels (equivalent to the item number)
+                for(i=0; i < jsonData.length; i++)
+                {
+                    itemNumbers.push(jsonData[i].itemNumber.toString()); //adding new data to array
+                    remainingStocks.push(jsonData[i].remainingStocksOnHand); //adding new data to array
+                    safetyStocks.push(jsonData[i].safetyStock); //adding new data to array
+                };
+            }
+            else
+            {
+                toastr.error("Error Loading item stocks data");
+            }
+
+            //set random color for the chart
+            //let colors = [];
+            //for (i = 0; i < data.length; i++)
+            //{
+            //    colors.push('#' + Math.floor(Math.random() * 16777215).toString(16));
+            //}
+
+            //generate the chart
+            var ChartData = {
+                labels: itemNumbers,
+                datasets: [
+                    {
+                        label: 'Remaining Stocks',
+                        //backgroundColor: colors,
+                        //borderColor: colors,
+                        backgroundColor: 'rgba(60,141,188,0.9)',
+                        borderColor: 'rgba(60,141,188,0.8)',
+                        pointRadius: false,
+                        pointColor: '#3b8bba',
+                        pointStrokeColor: 'rgba(60,141,188,1)',
+                        pointHighlightFill: '#fff',
+                        pointHighlightStroke: 'rgba(60,141,188,1)',
+                        data: remainingStocks
+                    },
+                    {
+                        label: 'Safety Stocks',
+                        //backgroundColor: colors,
+                        //borderColor: colors,
+                        backgroundColor: 'rgba(210, 214, 222, 1)',
+                        borderColor: 'rgba(210, 214, 222, 1)',
+                        pointRadius: false,
+                        pointColor: '#3b8bba',
+                        pointStrokeColor: 'rgba(60,141,188,1)',
+                        pointHighlightFill: '#fff',
+                        pointHighlightStroke: 'rgba(60,141,188,1)',
+                        data: safetyStocks
+                    },
+                ]
+            }
+
+            //-------------
+            //- BAR CHART - ITEMS BELOW SAFETY STOCKS
+            //-------------
+            var barChartCanvas = $('#barChart-BelowSafety').get(0).getContext('2d');
+            var barChartData = $.extend(true, {}, ChartData);
+            var temp0 = ChartData.datasets[0];
+            barChartData.datasets[0] = temp0;
+
+            var barChartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                datasetFill: false,
+                scales: {
+                    xAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Item Number'
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        ticks: {
+                            beginAtZero: true,
+                            steps: 10,
+                            stepValue: 5,
+                            labelString: 'Quantity'
+                        }
+                    }]
+                },
+            }
+
+            new Chart(barChartCanvas, {
+                type: 'bar',
+                data: barChartData,
+                options: barChartOptions
+            })
+        });
+
+    </script>
+
+
+    @*ITEMS ON HOLD*@
+    <script>
+        $(async function () {
+            //FOR ALERT
+            var Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            });
+
+            //URL ACTION OF THE METHOD TO ACCESS
+            const apiUrl = '@Url.Action("OnHold", "Home")';
+            // Get the information of the selected item from the controller
+            const Data = await fetch(apiUrl);
+            let itemNumbers = [];
+            let quantity = [];
+
+            if (Data.status === 200) //status success
+            {
+                const jsonData = await Data.json();
+                //console.log(jsonData);
+                //get the labels (equivalent to the item number)
+                for (i = 0; i < jsonData.length; i++) {
+                    itemNumbers.push(jsonData[i].itemNumber.toString()); //adding new data to array
+                    quantity.push(jsonData[i].quantity); //adding new data to array
+                };
+            }
+            else {
+                toastr.error("Error Loading items on hold data");
+            }
+
+            //set random color for the chart
+            let colors = [];
+            for (i = 0; i < itemNumbers.length; i++) 
+            {
+                colors.push('#' + Math.floor(Math.random() * 16777215).toString(16));
+            }
+
+            //generate the chart
+            var donutData = {
+                labels: itemNumbers,
+                datasets: [
+                    {
+                        data: quantity,
+                        backgroundColor: colors,
+                    }
+                ]
+            }
+
+        //-------------
+        //- PIE CHART - ON HOLD ITEMS
+        //-------------
+        // Get context with jQuery - using jQuery's .get() method.
+        var pieChartCanvas = $('#pieChart-HoldItems').get(0).getContext('2d')
+        var pieData = donutData;
+        var pieOptions = {
+            maintainAspectRatio: false,
+            responsive: true,
+        }
+        //Create pie or douhnut chart
+        // You can switch between pie and douhnut using the method below.
+        new Chart(pieChartCanvas, {
+            type: 'pie',
+            data: pieData,
+            options: pieOptions
+        })
+    });
+    </script>
+
+
+    @*TOP 10 REQUESTED ITEMS*@
+    <script>
+        $(async function () {
+            //FOR ALERT
+            var Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            });
+
+            //URL ACTION OF THE METHOD TO ACCESS
+            const apiUrl = '@Url.Action("TopRequested", "Home")';
+            // Get the information of the selected item from the controller
+            const Data = await fetch(apiUrl);
+            let itemNumbers = [];
+            let quantity = [];
+
+            if (Data.status === 200) //status success
+            {
+                const jsonData = await Data.json();
+                //console.log(jsonData);
+                //get the labels (equivalent to the item number)
+                for (i = 0; i < jsonData.length; i++) {
+                    itemNumbers.push(jsonData[i].itemNumber.toString()); //adding new data to array
+                    quantity.push(jsonData[i].quantity); //adding new data to array
+                };
+            }
+            else {
+                toastr.error("Error Loading items on top 10 requested items data");
+            }
+
+            //set random color for the chart
+            let colors = [];
+            for (i = 0; i < itemNumbers.length; i++) {
+                colors.push('#' + Math.floor(Math.random() * 16777215).toString(16));
+            }
+
+            //generate the chart
+            var donutData = {
+                labels: itemNumbers,
+                datasets: [
+                    {
+                        data: quantity,
+                        backgroundColor: colors,
+                    }
+                ]
+            }
+
+            //-------------
+            //- PIE CHART - TOP 10 REQUESTED ITEMS
+            //-------------
+            // Get context with jQuery - using jQuery's .get() method.
+            var pieChartCanvas = $('#pieChart-TopRequest').get(0).getContext('2d')
+            var pieData = donutData;
+            var pieOptions = {
+                maintainAspectRatio: false,
+                responsive: true,
+            }
+            //Create pie or douhnut chart
+            // You can switch between pie and douhnut using the method below.
+            new Chart(pieChartCanvas, {
+                type: 'pie',
+                data: pieData,
+                options: pieOptions
+            })
+        });
+    </script>
+
+
+
+    @*FOR DATATABLE*@
+    <script src="~/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+    <script src="~/plugins/jszip/jszip.min.js"></script>
+    <script src="~/plugins/pdfmake/pdfmake.min.js"></script>
+    <script src="~/plugins/pdfmake/vfs_fonts.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+
+    <script>
+        $(function () {
+            $("#expiration").DataTable({
+                "order": [[0, 'desc']],
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "paging": false,
+                "info": true,
+                "paging": true,
+                "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+            }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+        });
+    </script>
+
+
+}

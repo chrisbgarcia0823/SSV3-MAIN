@@ -1,0 +1,329 @@
+﻿@model IEnumerable<ShopSuppliesV3.ViewModel.Items>
+@using ShopSuppliesV3.Helpers
+
+@{
+    ViewData["Title"] = "Item List";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+@section Styles
+    {
+    @*FOR ALERTS*@
+    <link href="~/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" />
+    <link href="~/plugins/toastr/toastr.min.css" rel="stylesheet" />
+
+    @*FOR DATATABLE*@
+    <link rel="stylesheet" href="~/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+}
+<div class="card card-outline card-danger" id="ItemListCard">
+    <div class="card-header">
+        <h1>Item List</h1>
+        <a asp-action="Create" class="btn btn-primary">Create New Item</a>
+    </div>
+    <div class="card-body">
+        <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="table-responsive">
+                        <table id="items" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                            <thead>
+                                <tr>
+                                    <td>Id</td>
+                                    <td>BU</td>
+                                    <td>Buyer</td>
+                                    <td>Item Number</td>
+                                    <td>Description </td>
+                                    <td>Unit of Measure </td>
+                                    <td>Safety Stocks</td>
+                                    <td>Supplier</td>
+                                    <td>Added By</td>
+                                    <td>Date Added</td>
+                                    <td></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>@item.Id</td>
+                                        <td>@item.BUName</td>
+                                        <td>@item.BuyerName</td>
+                                        <td>@item.ItemNumber</td>
+                                        <td>@item.Description</td>
+                                        <td>@item.UnitOfMeasure</td>
+                                        <td>@item.SafetyStock</td>
+                                        <td>@item.SupplierName</td>
+                                        <td>@item.UserName</td>
+                                        <td>@item.DateAdded.ToString("g")</td>
+                                        <td class="text-center">
+                                            <div class="btn-group">
+                                                <a asp-action="EditItem" asp-route-itemId="@item.Id" class="btn btn-warning" id="EditBtn">Edit</a>&nbsp;
+                                                <button type="button" class="btn btn-danger delete-button" id="deleteBtn" name="deleteBtn" value="@item.Id" onclick="deleteItem(@item.Id)">Delete</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@*MODAL FOR THE DELETE*@
+<div id="modalDelete" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        @*<form asp-action="DeleteItem" id="DeleteItemForm" method="post">*@
+        @*            <input type="hidden" id="ItemId" name="ItemId" />
+        <input type="hidden" id="ItemNumber" name="ItemNumber" />*@
+        <input type="hidden" id="ItemId" name="ItemId" />
+        <div class="modal-content" id="ItemModalDelete">
+            <div class="modal-header bg-danger">
+                <h3 id="modalDeleteTitle"></h3>
+            </div>
+            <div class="modal-body">
+                <div class="callout callout-danger text-sm">
+                    <div class="row">
+                        <div class="col-md-11">
+                            <h6 class="font-weight-bold text-danger">Attention</h6>
+                            <div class="text-dark">
+                                You cannot delete Item that are in the inventory or has active request.
+                            </div>
+                            <div class="text-dark">
+                                Please use this to delete eronous entry only.
+                            </div>
+                        </div>
+                        <div class="col-md-1 d-flex text-right">
+                            <h3 class="my-auto w-100 text-danger pr-2" style="opacity: 0.5;"><i class="fa fa-exclamation-triangle"></i></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col">
+                    <button type="button" class="btn btn-danger" id="ConfirmBtn" onclick="confirmedDelete()">Yes</button>
+                </div>
+                <div class="col text-right">
+                    <button type="button" data-dismiss="modal" class="btn btn-default">Cancel</button>
+                </div>
+            </div>
+        </div>
+        @*        </form>*@
+    </div>
+</div>
+
+
+@section Scripts {
+
+    @*FOR DATATABLE*@
+    <script src="~/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+    <script src="~/plugins/jszip/jszip.min.js"></script>
+    <script src="~/plugins/pdfmake/pdfmake.min.js"></script>
+    <script src="~/plugins/pdfmake/vfs_fonts.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+    <script src="~/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+
+    <script>
+        $(function () {
+            $("#items").DataTable({
+                "order": [[0, 'desc']],
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "paging": false,
+                "info": true,
+                "paging": true,
+                "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+            }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+        });
+    </script>
+
+    @*SHOW LOADING EFFECT WHENEVER A CLASS BTN IS CLICKED*@
+    <script>
+        $("#EditBtn").click(function () {
+            //Start the loading annimation
+            const div = document.createElement('div');
+            const ItemListCard = document.getElementById('ItemListCard');//Parent Div
+            div.classList.add('overlay');
+            div.id = 'myDiv';
+            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+            ItemListCard.appendChild(div);
+        });
+    </script>
+
+    @*FOR CONTINUATION*@
+    @*DELETE CODE WHEN BUTTON IS CLICKED*@
+    <script>
+        function deleteItem(itemId)
+        {
+            const ItemIdModal = document.getElementById('ItemId');
+            ItemIdModal.value = itemId;
+            //const button = deleteItem.target;
+            //OPEN THE DELETE MODAL
+            $('#modalDelete').modal('show');
+
+            // Get the data table row that contains the button.
+            ////var row = $(button).closest('tr');
+            ////return row;
+        }
+    </script>
+    <script>
+        async function confirmedDelete()
+        {
+            const ItemIdModal = document.getElementById('ItemId');
+            const itemId = ItemIdModal.value;
+            var row = $('.delete-button').closest('tr');//get the row that was closest to the delete-button class that was clicked
+            //var row = deleteItem(itemId);
+            var table = $('#items').DataTable();
+
+            //Start the loading annimation
+            const div = document.createElement('div');
+            const ItemModalDelete = document.getElementById('ItemModalDelete');//Parent Div
+            div.classList.add('overlay');
+            div.id = 'myDiv';
+            div.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i>';
+            ItemModalDelete.appendChild(div);
+
+            //FOR ALERT
+            var Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            });
+
+            //Perform delete item using fetch API
+            const deleteItem = await fetch(`@Url.Action("DeleteItem", "Items")/${itemId}`)
+            {
+                if (deleteItem.status === 200) //delete is performed
+                {
+                    const results = await deleteItem.text(); //convert to string/text
+
+                    //Hide the Modal Delete
+                    $('#modalDelete').modal('hide');
+
+                    if (results == "Delete Success") {
+                        //Remove the SPINNING LOADING EFFECT WHEN ALL DATA IS LOADED
+                        const div = document.getElementById('myDiv');
+                        div.remove();
+
+                        //Delete the item row in the data table
+                        table.row(row).remove().draw()
+
+                        //Add alert for the success delete (visual confirmation)
+                        return toastr.success("Item deleted successfully");
+
+                    }
+                    else if (results == "Delete Error") {
+
+                        //Remove the SPINNING LOADING EFFECT WHEN ALL DATA IS LOADED
+                        const div = document.getElementById('myDiv');
+                        div.remove();
+
+                        //Add alert for the error on delete (visual confirmation)
+                        return toastr.error("Item cannot be deleted. It is either in incoming or active request.");
+                    }
+                    else if (results == "Item Not Exist") {
+
+                        //Remove the SPINNING LOADING EFFECT WHEN ALL DATA IS LOADED
+                        const div = document.getElementById('myDiv');
+                        div.remove();
+
+                        //Add alert for the error on delete (visual confirmation)
+                        return toastr.error("Item does not exist");
+                    }
+                    else {
+                        //Remove the SPINNING LOADING EFFECT WHEN ALL DATA IS LOADED
+                        const div = document.getElementById('myDiv');
+                        div.remove();
+
+                        //Add alert for the error on delete (visual confirmation)
+                        return toastr.error("Unauthorized User")
+                    }
+
+                }
+                else {
+                    //Remove the SPINNING LOADING EFFECT WHEN ALL DATA IS LOADED
+                    const div = document.getElementById('myDiv');
+                    div.remove();
+
+                    //Hide the Modal Delete
+                    $('#modalDelete').modal('hide');
+
+                    //Add alert for the error on delete (visual confirmation)
+                    return toastr.error("Item delete error. Please contact your app developer.");
+                }
+            }
+        }
+    </script>
+
+
+
+
+    @*FOR ALERTS*@
+    <script src="~/plugins/sweetalert2/sweetalert2.min.js"></script>
+    <script src="~/plugins/toastr/toastr.min.js"></script>
+    @if (TempData["AddedSuccess"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.success("@TempData["AddedSuccess"] Added Successfully ")
+            });
+        </script>
+    }
+
+    @if (TempData["ItemDoesNotExis"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.error("Item #-@TempData["ItemDoesNotExis"] does not exist. ")
+            });
+        </script>
+    }
+
+    @if (TempData["ItemEditWarning"] != null)
+    {
+        <script type="text/javascript">
+            $(function () {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                toastr.warning("Item #-@TempData["ItemEditWarning"] already in incoming or has an active request. ")
+            });
+        </script>
+    }
+
+}

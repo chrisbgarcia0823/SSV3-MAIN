@@ -1,0 +1,313 @@
+﻿@model ShopSuppliesV3.ViewModel.Requests
+@using ShopSuppliesV3.Helpers
+@using ShopSuppliesV3.ViewModel
+
+@{
+    ViewData["Title"] = "Request Detail";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+@section Styles
+{
+
+}
+
+@if (TempData["isIssued"].ToString().ToLower() == "false")
+{
+    <div class="card">
+        <div class="card-header bg-warning">
+            <h4>Order Details</h4>
+        </div>
+        <div class="card-body mt-0">
+            <div class="row">
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-hashtag"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Order Number</span>
+                            <span class="info-box-text"><strong>@Model.ItemNumber</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-info"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Description</span>
+                            <span class="info-box-text"><strong>@Model.ItemDescription</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-sitemap"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">BU</span>
+                            <span class="info-box-text"><strong>@Model.BUname</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="far fa-compass"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Area</span>
+                            <span class="info-box-text"><strong>@Model.AreaName</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-layer-group"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Request Category</span>
+                            <span class="info-box-text"><strong>@Model.RequestCategory</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-user"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Requestor</span>
+                            <span class="info-box-text"><strong>@Model.RequestorName</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-thumbs-up"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Approver</span>
+                            <span class="info-box-text"><strong>@Model.ApproverName</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="far fa-calendar"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Requested Date</span>
+                            <span class="info-box-text"><strong>@Model.DateRequested</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-spinner"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Requested Status</span>
+                            <span class="info-box-text"><strong>@Model.RequestStatus</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-boxes"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Requested Quantity</span>
+                            <span class="info-box-text"><strong>@Model.QuantityRequested</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-ruler"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">UOM</span>
+                            <span class="info-box-text"><strong>@Model.UnitOfMeasure</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-question"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Purpose</span>
+                            <span class="info-box-text"><strong>@Model.Purpose</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button class="btn btn-secondary" type="button" onclick="history.back()">Back</button>
+        </div>
+    </div>
+}
+
+else
+{
+    <div class="card">
+        <div class="card-header bg-warning">
+            <h4>Order Details</h4>
+        </div>
+        <div class="card-body mt-0">
+            <div class="row">
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-hashtag"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Order Number</span>
+                            <span class="info-box-text"><strong>@Model.ItemNumber</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-info"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Description</span>
+                            <span class="info-box-text"><strong>@Model.ItemDescription</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-sitemap"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">BU</span>
+                            <span class="info-box-text"><strong>@Model.BUname</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="far fa-compass"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Area</span>
+                            <span class="info-box-text"><strong>@Model.AreaName</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-layer-group"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Request Category</span>
+                            <span class="info-box-text"><strong>@Model.RequestCategory</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-user"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Requestor</span>
+                            <span class="info-box-text"><strong>@Model.RequestorName</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-thumbs-up"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Approver</span>
+                            <span class="info-box-text"><strong>@Model.ApproverName</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="far fa-calendar"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Requested Date</span>
+                            <span class="info-box-text"><strong>@Model.DateRequested</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-spinner"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Requested Status</span>
+                            <span class="info-box-text"><strong>@Model.RequestStatus</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-boxes"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Requested Quantity</span>
+                            <span class="info-box-text"><strong>@Model.QuantityRequested</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-ruler"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">UOM</span>
+                            <span class="info-box-text"><strong>@Model.UnitOfMeasure</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-question"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Purpose</span>
+                            <span class="info-box-text"><strong>@Model.Purpose</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-success elevation-1"><i class="far fa-calendar"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Date Issued</span>
+                            <span class="info-box-text"><strong>@Model.DateIssued</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-success elevation-1"><i class="fas fa-boxes"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Quantity Issued</span>
+                            <span class="info-box-text"><strong>@Model.QuantityIssued</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-success elevation-1"><i class="fas fa-hand-holding"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Issuer</span>
+                            <span class="info-box-text"><strong>@Model.IssuerName</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-green elevation-1"><i class="fas fa-coins"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Unit Cost</span>
+                            <span class="info-box-text"><strong>@Model.UnitCost</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-green elevation-1"><i class="fas fa-dollar-sign"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Total Cost</span>
+                            <span class="info-box-text"><strong>@Model.TotalCost</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button class="btn btn-secondary" type="button" onclick="history.back()">Back</button>
+        </div>
+    </div>
+}

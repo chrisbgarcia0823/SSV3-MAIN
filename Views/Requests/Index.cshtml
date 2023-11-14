@@ -1,0 +1,100 @@
+﻿@*@model IEnumerable<ShopSuppliesV3.ViewModel.Requests>*@
+@model IEnumerable<ShopSuppliesV3.ViewModel.Carts>
+@using ShopSuppliesV3.Helpers;
+@{
+    ViewData["Title"] = "Request List";
+    if (LayoutSelector.AccessType(User.Identity.Name.Substring(5)).ToLower() == "user")
+    {
+        Layout = "~/Views/Shared/adminLTE/_StoreLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/adminLTE/_Layout.cshtml";
+    }
+}
+
+@*<div class="card card-outline card-danger">
+    <div class="card-header">
+        <h3>Request List</h3>
+    </div>
+    <div class="card-body table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <td>BU</td>
+                    <td>Requestor</td>
+                    <td>Item Requested</td>
+                    <td>Description</td>
+                    <td>Quantity Requested</td>
+                    <td>Unit of Measure</td>
+                    <td>Purpose</td>
+                    <td>Date Requested</td>
+                    <td>Status</td>
+                    <td>Action</td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var request in Model)
+                {
+                    <tr>
+                        <td>@request.BUname</td>
+                        <td>@request.RequestorName</td>
+                        <td>@request.ItemNumber</td>
+                        <td>@request.ItemDescription</td>
+                        <td>@request.QuantityRequested</td>
+                        <td>@request.UnitOfMeasure</td>
+                        <td>@request.Purpose</td>
+                        <td>@request.DateRequested.ToString("MMM-dd-yyyy")</td>
+                        <td>@request.RequestStatus</td>
+                        <td>
+                            <a asp-action="IssueRequestedItem" asp-controller="Outgoing" asp-route-requestId="@request.Id" asp-route-itemId="@request.ItemId" class="btn @RequestIndicatorHelpers.DisableBtnBasedOnApproval(request.RequestStatus)">TEST</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>*@
+
+<div class="row">
+    <div class="col-lg-6 offset-lg-3">
+        <div class="card card-outline card-danger" style="height:45rem">
+            <div class="card-header">
+                <h3>Request List</h3>               
+            </div>
+            <div class="card-body table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr class="text-uppercase">
+                            <td>Cart Id</td>
+                            <td>BU</td>
+                            <td>Requestor Name</td>
+                            <td>Approver Name</td>
+                            <td>Cart</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.RequestorId</td>
+                                <td>@item.BUname</td>
+                                <td>@item.RequestorName</td>
+                                <td>@item.ApproverName</td>
+                                <td class="navbar navbar-expand">
+                                    <div class="dropdown">
+                                        <a asp-action="RequestDetails" asp-route-cartId="@item.RequestorId" class="nav-link">
+                                            <h4><i class="fas fa-shopping-cart"></i></h4>
+                                            <span class="badge badge-danger navbar-badge">@item.RequestCount</span>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
